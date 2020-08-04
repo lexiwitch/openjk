@@ -105,8 +105,6 @@ cvar_t	*cl_consoleUseScanCode;
 
 cvar_t  *cl_lanForcePackets;
 
-cvar_t	*cl_drawRecording;
-
 vec3_t cl_windVec;
 
 
@@ -2706,8 +2704,6 @@ void CL_Init( void ) {
 	cl_freezeDemo = Cvar_Get ("cl_freezeDemo", "0", CVAR_TEMP );
 	rcon_client_password = Cvar_Get ("rconPassword", "", CVAR_TEMP, "Password for remote console access" );
 	cl_activeAction = Cvar_Get( "activeAction", "", CVAR_TEMP );
-
-	cl_drawRecording = Cvar_Get ("cl_drawRecording", "1", CVAR_ARCHIVE );
 	
 	cl_timedemo = Cvar_Get ("timedemo", "0", 0);
 	cl_aviFrameRate = Cvar_Get ("cl_aviFrameRate", "25", CVAR_ARCHIVE);
