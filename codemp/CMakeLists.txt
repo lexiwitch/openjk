@@ -716,7 +716,7 @@ endif(BuildMPDed)
 		set(GameLibsBuilt ${GameLibsBuilt} ${MPUI})
 	endif()
 
-if(WIN32)
+if(WIN32 AND GameLibsBuilt)
 set(GameLibFullPaths)
 	if(MSVC)
 		foreach(GameLib ${GameLibsBuilt})
