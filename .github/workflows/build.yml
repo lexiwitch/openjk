@@ -3,9 +3,9 @@ name: Build
 on:
   workflow_dispatch:
   push:
-    branches: master
+    branches: newopenjk
   pull_request:
-    branches: master
+    branches: newopenjk
 
 jobs:
   vs2019:
