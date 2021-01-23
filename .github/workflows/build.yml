@@ -58,6 +58,13 @@ jobs:
       shell: bash
       run: cmake --build . --config RelWithDebInfo
 
+    - name: Upload Build
+      uses: actions/upload-artifact@v2
+      with:
+        name: Windows Build
+        path: ${{runner.workspace}}/build
+
+
   macos:
     name: Build macOS AppleClang
     runs-on: macos-10.15
