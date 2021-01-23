@@ -32,10 +32,15 @@ jobs:
       shell: bash
       run: cmake --build . --config Release
 
-    - name: Upload Build
+    - name: Install
+      working-directory: ${{runner.workspace}}/build
+      shell: bash
+      run: cmake --install . --prefix ${{runner.workspace}}/install
+
+    - name: Upload Install
       uses: actions/upload-artifact@v2
       with:
         name: Windows Build
-        path: ${{runner.workspace}}/build/Release
+        path: ${{runner.workspace}}/install
 
 
