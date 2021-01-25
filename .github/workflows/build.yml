@@ -18,18 +18,18 @@ jobs:
       run: cmake -E make_directory ${{runner.workspace}}/build
 
     - name: Configure CMake
-      shell: bash
+      shell: pwsh
       working-directory: ${{runner.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -A Win32 -T v120_xp
+      run: cmake $env:GITHUB_WORKSPACE -A Win32 -T v120_xp
 
     - name: Build
       working-directory: ${{runner.workspace}}/build
-      shell: bash
+      shell: pwsh
       run: cmake --build . --config Release
 
     - name: Install
       working-directory: ${{runner.workspace}}/build
-      shell: bash
+      shell: pwsh
       run: cmake --install . --prefix install
 
     - name: Upload Install
