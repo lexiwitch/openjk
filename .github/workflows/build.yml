@@ -4,14 +4,12 @@ on:
   workflow_dispatch:
   push:
     branches: newopenjk
-  pull_request:
-    branches: newopenjk
 
 jobs:
 
-  vs2017_xp:
-    name: Build VS 2017, Windows XP
-    runs-on: windows-2016
+  vs2013_xp:
+    name: Build VS 2013, Windows XP
+    runs-on: [self-hosted, windows]
 
     steps:
     - uses: actions/checkout@v2
@@ -25,7 +23,7 @@ jobs:
     - name: Configure CMake
       shell: bash
       working-directory: ${{runner.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -A Win32 -T v141_xp
+      run: cmake $GITHUB_WORKSPACE -A Win32 -T v120_xp
 
     - name: Build
       working-directory: ${{runner.workspace}}/build
