@@ -30,7 +30,9 @@ jobs:
     - name: Install
       working-directory: ${{runner.workspace}}/build
       shell: powershell
-      run: cmake --install . --prefix install
+      run: | 
+        md install
+        cmake --install . --prefix install
 
     - name: Upload Install
       uses: actions/upload-artifact@v2
