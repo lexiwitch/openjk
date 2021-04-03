@@ -8,8 +8,11 @@ on:
 jobs:
 
   vs2013_xp:
-    name: Build VS 2013, Windows XP
+    name: Build VS 2013, Windows XP, ${{ matrix.build_type }}
     runs-on: [self-hosted, windows]
+    strategy:
+      matrix:
+        build-type: [Release, RelWithDebInfo]
 
     steps:
     - uses: actions/checkout@v2
@@ -25,7 +28,7 @@ jobs:
     - name: Build
       working-directory: ${{runner.workspace}}/build
       shell: powershell
-      run: cmake --build . --config Release
+      run: cmake --build . --config ${{ matrix.build_type }}
 
     - name: Install
       working-directory: ${{runner.workspace}}/build
@@ -35,7 +38,7 @@ jobs:
     - name: Upload Install
       uses: actions/upload-artifact@v2
       with:
-        name: Windows Build
+        name: Windows Build ${{ matrix.build_type }}
         path: ${{runner.workspace}}/build/install
 
 
