@@ -30,15 +30,10 @@ jobs:
       shell: powershell
       run: cmake --build . --config ${{ matrix.build_type }}
 
-    - name: Install
-      working-directory: ${{runner.workspace}}/build
-      shell: powershell
-      run: cmake --install . --prefix install
-
-    - name: Upload Install
+    - name: Upload Build
       uses: actions/upload-artifact@v2
       with:
         name: Windows Build ${{ matrix.build_type }}
-        path: ${{runner.workspace}}/build/install
+        path: ${{runner.workspace}}/build/${{ matrix.build_type }}
 
 
