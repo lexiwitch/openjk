@@ -3828,6 +3828,9 @@ void FS_InitFilesystem( void ) {
 	Com_StartupVariable( "fs_apppath" );
 #endif
 
+	if (Cvar_VariableString("fs_game") == "")
+		Cvar_Set("fs_game", "MBII");
+
 	if(!FS_FilenameCompare(Cvar_VariableString("fs_game"), BASEGAME))
 		Cvar_Set("fs_game", "");
 
