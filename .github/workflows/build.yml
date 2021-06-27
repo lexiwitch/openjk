@@ -23,7 +23,7 @@ jobs:
     - name: Configure CMake
       shell: powershell
       working-directory: ${{runner.workspace}}/build
-      run: cmake $env:GITHUB_WORKSPACE -A Win32 -T v120_xp
+      run: cmake $env:GITHUB_WORKSPACE -A Win32 -T v120_xp -DBuildPortableVersion=ON
 
     - name: Build
       working-directory: ${{runner.workspace}}/build
