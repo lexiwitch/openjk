@@ -31,7 +31,7 @@ jobs:
       run: cmake --build . --config ${{ matrix.build_type }}
 
     - name: Upload Build
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v2.2.4
       with:
         name: Windows Build ${{ matrix.build_type }}
         path: ${{runner.workspace}}/build/${{ matrix.build_type }}
@@ -41,28 +41,29 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        build_type: [Release, RelWithDebInfo]
+        build_type: [Release]
 
     steps:
     - uses: actions/checkout@v2
 
     - name: Create Build Environment
       run: |
+        sudo dpkg --add-architecture i386
         sudo apt-get update
-        sudo apt-get install libjpeg-dev libpng-dev zlib1g-dev libsdl2-dev
+        sudo apt-get install build-essential cmake gcc-multilib g++-multilib libjpeg-dev:i386 libpng-dev:i386 zlib1g-dev:i386 libsdl2-dev:i386
         cmake -E make_directory ${{runner.workspace}}/build
     - name: Configure CMake
       shell: bash
       working-directory: ${{runner.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_TOOLCHAIN_FILE=CMakeModules/Toolchains/linux-i686.cmake -DBuildMPDed=ON -DBuildMPEngine=ON -DBuildMPRdVanilla=ON -DBuildMPCGame=OFF -DBuildMPUI=OFF -DBuildSPEngine=OFF -DBuildSPGame=OFF -DBuildSPRdVanilla=OFF
 
     - name: Build
-      working-directory: ${{runner.workspace}}/build/
+      working-directory: ${{runner.workspace}}/build
       shell: bash
       run: cmake --build .
       
     - name: Upload Build
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v2.2.4
       with:
         name: Linux Build ${{ matrix.build_type }}
-        path: ${{runner.workspace}}/build
+        path: ${{runner.workspace}}/build/
