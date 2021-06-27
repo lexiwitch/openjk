@@ -57,7 +57,7 @@ jobs:
       run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
 
     - name: Build
-      working-directory: ${{runner.workspace}}/build
+      working-directory: ${{runner.workspace}}/build/
       shell: bash
       run: cmake --build .
       
@@ -65,4 +65,4 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: Linux Build ${{ matrix.build_type }}
-        path: ${{runner.workspace}}/build/${{ matrix.build_type }}
+        path: ${{runner.workspace}}/build
