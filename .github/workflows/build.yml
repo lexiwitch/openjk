@@ -57,7 +57,7 @@ jobs:
       working-directory: ${{runner.workspace}}/build
       run: >
         cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-        -DCMAKE_TOOLCHAIN_FILE=$GITHUB_WORKSPACE/CMakeModules/Toolchains/linux-i686.cmake
+        -DCMAKE_TOOLCHAIN_FILE=${{runner.workspace}}/CMakeModules/Toolchains/linux-i686.cmake
         -DBuildMPDed=ON -DBuildMPEngine=ON -DBuildMPRdVanilla=ON -DBuildMPCGame=OFF
         -DBuildMPUI=OFF -DBuildSPEngine=OFF -DBuildSPGame=OFF -DBuildSPRdVanilla=OFF
 
