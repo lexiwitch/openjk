@@ -62,6 +62,7 @@ jobs:
         sudo apt-get update
         sudo apt-get install build-essential cmake gcc-multilib g++-multilib libjpeg-dev:i386 libpng-dev:i386 zlib1g-dev:i386 libsdl2-dev:i386
         cmake -E make_directory ${{runner.workspace}}/build
+        
     - name: Configure CMake
       shell: bash
       working-directory: ${{runner.workspace}}/build
@@ -98,6 +99,7 @@ jobs:
 
     - name: Create Build Environment
       run: cmake -E make_directory ${{runner.workspace}}/build
+      
     - name: Configure CMake
       shell: bash
       working-directory: ${{runner.workspace}}/build
