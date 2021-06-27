@@ -18,9 +18,7 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Create Build Environment
-      run: |
-        cmake -E remove_directory ${{runner.workspace}}/build
-        cmake -E make_directory ${{runner.workspace}}/build
+      run:  cmake -E make_directory ${{runner.workspace}}/build
 
     - name: Configure CMake
       shell: powershell
@@ -37,6 +35,16 @@ jobs:
       with:
         name: Windows Build ${{ matrix.build_type }}
         path: ${{runner.workspace}}/build/${{ matrix.build_type }}
+        
+  win_cleanup:
+    name: Cleanup Windows Builds
+    runs-on: [self-hosted, windows]
+    needs: vs2013_xp
+    steps:
+      - name: Move Build Folder
+        run: | 
+          cmake -E remove_directory ${{runner.workspace}}/lastbuild
+          cmake -E rename ${{runner.workspace}}/build ${{runner.workspace}}/lastbuild
 
   linux:
     name: Build Linux, ${{ matrix.build_type }}
