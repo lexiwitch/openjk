@@ -72,7 +72,6 @@ jobs:
       uses: actions/upload-artifact@v2.2.4
       with:
         name: Linux Build ${{ matrix.build_type }}
-        working-directory: ${{runner.workspace}}/build
         path: |
-          *.i386
-          *.so
+          ${{runner.workspace}}/build/*.i386
+          ${{runner.workspace}}/build/*.so
