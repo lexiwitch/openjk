@@ -71,7 +71,7 @@ jobs:
         -DCMAKE_TOOLCHAIN_FILE=cmake/Toolchains/linux-i686.cmake
         -DBuildMPDed=OFF -DBuildMPEngine=ON -DBuildMPRdVanilla=ON -DBuildMPCGame=OFF
         -DBuildMPUI=OFF -DBuildSPEngine=OFF -DBuildSPGame=OFF -DBuildSPRdVanilla=OFF
-        -DUseInternalPNG=ON -DUseInternalJPEG=ON
+        -DUseInternalPNG=ON -DUseInternalJPEG=ON -DUseInternalSDL2=ON
 
     - name: Build
       working-directory: ${{runner.workspace}}/build
