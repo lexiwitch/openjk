@@ -3403,6 +3403,18 @@ void FS_Startup( const char *gameName ) {
 	fs_homepath = Cvar_Get ("fs_homepath", homePath, CVAR_INIT|CVAR_PROTECTED, "(Read/Write) Location for user generated files" );
 	fs_gamedirvar = Cvar_Get ("fs_game", "", CVAR_INIT|CVAR_SYSTEMINFO, "Mod directory" );
 
+	if (strcmp(fs_homepath->string, ".") == 0) {
+		Com_Printf("Homepath: %s\n", fs_basepath->string);
+	}
+	else {
+		if (fs_homepath->string[0]) {
+			Com_Printf("Homepath: %s\n", fs_homepath->string);
+		}
+		else {
+			Com_Printf("Homepath is empty, user generated files will not be written!\n");
+		}
+	}
+
 	fs_dirbeforepak = Cvar_Get("fs_dirbeforepak", "0", CVAR_INIT|CVAR_PROTECTED, "Prioritize directories before paks if not pure" );
 
 	// add search path elements in reverse priority order (lowest priority first)
