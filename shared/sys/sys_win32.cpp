@@ -558,6 +558,9 @@ void Sys_PlatformInit( void ) {
 	}
 	else
 		timerResolution = 0;
+
+	//prevent "Not Responding" interfering with the load screen or stalling client loading entirely
+	DisableProcessWindowsGhosting();
 }
 
 /*

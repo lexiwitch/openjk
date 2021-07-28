@@ -3411,7 +3411,7 @@ void FS_Startup( const char *gameName ) {
 			Com_Printf("Homepath: %s\n", fs_homepath->string);
 		}
 		else {
-			Com_Printf("Homepath is empty, user generated files will not be written!\n");
+			Com_Printf( S_COLOR_YELLOW "Homepath is empty, user generated files will be on the root of the drive!\n");
 		}
 	}
 
