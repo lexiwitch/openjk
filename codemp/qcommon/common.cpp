@@ -72,6 +72,10 @@ cvar_t	*com_busyWait;
 
 cvar_t *com_affinity;
 
+#ifdef _WIN32
+cvar_t  *com_steamIntegration;
+#endif
+
 // com_speeds times
 int		time_game;
 int		time_frontend;		// renderer frontend time
@@ -1167,6 +1171,10 @@ void Com_Init( char *commandLine ) {
 		com_homepath = Cvar_Get("com_homepath", "", CVAR_INIT);
 
 		FS_InitFilesystem ();
+
+#ifdef _WIN32
+		com_steamIntegration = Cvar_Get("com_steamIntegration", "1", CVAR_ARCHIVE_ND);
+#endif
 
 		Sys_SteamInit();
 
