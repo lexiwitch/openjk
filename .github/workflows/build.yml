@@ -29,6 +29,11 @@ jobs:
       working-directory: ${{runner.workspace}}/build
       shell: powershell
       run: cmake --build . --config ${{ matrix.build_type }}
+      
+    - name: Set LAA
+      working-directory: "C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\bin" 
+      shell: powershell
+      run: ./editbin.exe /largeaddressaware ${{runner.workspace}}/build/${{ matrix.build_type }}/mbii.x86.exe
 
     - name: Upload Build
       uses: actions/upload-artifact@v2.2.4
