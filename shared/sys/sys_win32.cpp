@@ -624,9 +624,10 @@ static void* gp_steamLibrary = nullptr;
 
 void Sys_SteamInit()
 {
-	if (!Cvar_VariableIntegerValue("com_steamIntegration"))
+#ifndef DEDICATED
+	if (!Cvar_VariableIntegerValue("com_steamIntegration") || Cvar_VariableIntegerValue("com_dedicated"))
 	{
-		// Don't do anything if com_steamIntegration is disabled
+		// Don't do anything if com_steamIntegration is disabled or dedicated server
 		return;
 	}
 
@@ -658,6 +659,7 @@ void Sys_SteamInit()
 		gp_steamLibrary = nullptr;
 		return;
 	}
+#endif
 }
 
 /*
@@ -669,6 +671,7 @@ Platform-specific exit code
 */
 void Sys_SteamShutdown()
 {
+#ifndef DEDICATED
 	if (!gp_steamLibrary)
 	{
 		Com_Printf("Skipping Steam integration shutdown...\n");
@@ -678,4 +681,5 @@ void Sys_SteamShutdown()
 	SteamAPI_Shutdown();
 	Sys_UnloadLibrary(gp_steamLibrary);
 	gp_steamLibrary = nullptr;
+#endif
 }
