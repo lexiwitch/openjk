@@ -1173,7 +1173,7 @@ void Com_Init( char *commandLine ) {
 		FS_InitFilesystem ();
 
 #ifdef _WIN32
-		com_steamIntegration = Cvar_Get("com_steamIntegration", "1", CVAR_ARCHIVE_ND);
+		com_steamIntegration = Cvar_Get("com_steamIntegration", "0", CVAR_ARCHIVE_ND);
 #endif
 
 		Sys_SteamInit();
