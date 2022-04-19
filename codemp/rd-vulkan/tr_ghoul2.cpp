@@ -896,7 +896,7 @@ static int G2_ComputeLOD( trRefEntity_t *ent, const model_t *currentModel, int l
 	int lod = 0;
 
 	// model has only 1 LOD level, skip computations and bias
-	if ( currentModel->numLods < 2 || ent->e.renderfx & RF_NOLOD )	
+	if ( currentModel->numLods < 2 )	
 		return(0);
 
 	if ( r_lodbias->integer > lodBias )
