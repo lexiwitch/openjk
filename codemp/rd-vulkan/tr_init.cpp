@@ -774,7 +774,7 @@ void R_Register( void )
 	// latched and archived variables
 	//
 	r_allowExtensions					= ri.Cvar_Get( "r_allowExtensions",					"1",						CVAR_ARCHIVE_ND|CVAR_LATCH, "" );
-	r_ext_compressed_textures			= ri.Cvar_Get( "r_ext_compress_textures",			"0",						CVAR_ARCHIVE_ND|CVAR_LATCH, "" );
+	r_ext_compressed_textures			= ri.Cvar_Get( "r_ext_compress_textures",			"1",						CVAR_ARCHIVE_ND|CVAR_LATCH, "" );
 	r_ext_compressed_lightmaps			= ri.Cvar_Get( "r_ext_compress_lightmaps",			"0",						CVAR_ARCHIVE_ND|CVAR_LATCH, "" );
 	r_ext_preferred_tc_method			= ri.Cvar_Get( "r_ext_preferred_tc_method",			"0",						CVAR_ARCHIVE_ND|CVAR_LATCH, "" );
 	r_ext_gamma_control					= ri.Cvar_Get( "r_ext_gamma_control",				"1",						CVAR_ARCHIVE_ND|CVAR_LATCH, "" );
@@ -917,7 +917,7 @@ void R_Register( void )
 	r_hdr								= ri.Cvar_Get("r_hdr",								"1",						CVAR_ARCHIVE | CVAR_LATCH, "");
 	r_mapGreyScale						= ri.Cvar_Get("r_mapGreyScale",						"0",						CVAR_ARCHIVE_ND | CVAR_LATCH, "");
 	ri.Cvar_CheckRange(r_mapGreyScale, -1, 1, qfalse);
-	r_ext_max_anisotropy				= ri.Cvar_Get("r_ext_max_anisotropy",				"2",						CVAR_ARCHIVE_ND | CVAR_LATCH, "");
+	r_ext_max_anisotropy				= ri.Cvar_Get("r_ext_max_anisotropy",				"16",						CVAR_ARCHIVE_ND | CVAR_LATCH, "");
 	ri.Cvar_CheckRange(r_ext_max_anisotropy, 1, 16, qtrue);
 	r_greyscale							= ri.Cvar_Get("r_greyscale",						"0",						CVAR_ARCHIVE_ND, "");
 	ri.Cvar_CheckRange(r_greyscale, -1, 1, qfalse);
@@ -932,9 +932,9 @@ void R_Register( void )
 	r_bloom_intensity					= ri.Cvar_Get("r_bloom_intensity",					"0.15",						CVAR_ARCHIVE_ND | CVAR_LATCH, "");
 	ri.Cvar_CheckRange(r_bloom_intensity, 0.01f, 2, qfalse);
 #ifdef USE_PMLIGHT
-	r_dlightMode						= ri.Cvar_Get("r_dlightMode",						"2",						CVAR_ARCHIVE, "");
+	r_dlightMode						= ri.Cvar_Get("r_dlightMode",						"1",						CVAR_ARCHIVE, "");
 	ri.Cvar_CheckRange(r_dlightMode, 0, 2, qtrue);
-	r_dlightScale						= ri.Cvar_Get("r_dlightScale",						"0.8",						CVAR_ARCHIVE_ND, "");
+	r_dlightScale						= ri.Cvar_Get("r_dlightScale",						"1.0",						CVAR_ARCHIVE_ND, "");
 	ri.Cvar_CheckRange(r_dlightScale, 0.1f, 1, qfalse);
 	r_dlightIntensity					= ri.Cvar_Get("r_dlightIntensity",					"1.0",						CVAR_ARCHIVE_ND, "");
 	ri.Cvar_CheckRange(r_dlightIntensity, 0.1f, 1, qfalse);
