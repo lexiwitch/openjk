@@ -1542,6 +1542,7 @@ extern	cvar_t	*r_marksOnTriangleMeshes;
 
 extern	cvar_t	*r_aspectCorrectFonts;
 extern	cvar_t	*cl_ratioFix;
+extern	cvar_t	*r_aspectCorrectRotatePic2;
 
 // Vulkan
 extern cvar_t	*r_defaultImage;
