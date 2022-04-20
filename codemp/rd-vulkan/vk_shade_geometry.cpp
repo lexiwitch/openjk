@@ -54,8 +54,13 @@ static void get_mvp_transform( float *mvp )
 {
 	if (backEnd.projection2D)
 	{
+#ifdef LEGACY_2D_CANVAS
+		float mvp0 = 2.0f / SCREEN_WIDTH;
+		float mvp5 = 2.0f / SCREEN_HEIGHT;
+#else //causes issues with RotatePic2
 		float mvp0 = 2.0f / glConfig.vidWidth;
 		float mvp5 = 2.0f / glConfig.vidHeight;
+#endif
 
 		mvp[0] = mvp0; mvp[1] = 0.0f; mvp[2] = 0.0f; mvp[3] = 0.0f;
 		mvp[4] = 0.0f; mvp[5] = mvp5; mvp[6] = 0.0f; mvp[7] = 0.0f;
