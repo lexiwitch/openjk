@@ -422,7 +422,7 @@ void vk_update_attachment_descriptors( void ) {
 		qvkUpdateDescriptorSets(vk.device, 1, &desc, 0, NULL);
 
 		// bloom images
-		if (r_bloom->integer)
+		if (vk.bloomActive)
 		{
 			uint32_t i;
 			for (i = 0; i < ARRAY_LEN(vk.bloom_image_descriptor); i++)
@@ -488,8 +488,8 @@ void vk_init_descriptors( void ) {
 		alloc.pSetLayouts = &vk.set_layout_sampler;
 		VK_CHECK(qvkAllocateDescriptorSets(vk.device, &alloc, &vk.color_descriptor));
 
-		// bloo images
-		if (r_bloom->integer)
+		// bloom images
+		if (vk.bloomActive)
 		{
 			for (i = 0; i < ARRAY_LEN(vk.bloom_image_descriptor); i++)
 			{

@@ -303,7 +303,7 @@ void vk_create_attachments( void )
     {
         VkImageUsageFlags usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 
-        if (r_bloom->integer) {
+        if (vk.bloomActive) {
             uint32_t width = gls.captureWidth;
             uint32_t height = gls.captureHeight;
 

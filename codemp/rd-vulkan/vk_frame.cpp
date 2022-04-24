@@ -130,7 +130,7 @@ void vk_create_render_passes()
     attachments[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
     //attachments[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
     attachments[1].stencilLoadOp = r_stencilbits->integer ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-    if (r_bloom->integer) {
+    if (vk.bloomActive) {
         attachments[1].storeOp = VK_ATTACHMENT_STORE_OP_STORE; // keep it for post-bloom pass
         //attachments[1].stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
         attachments[1].stencilStoreOp = r_stencilbits->integer ? VK_ATTACHMENT_STORE_OP_STORE : VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -176,7 +176,7 @@ void vk_create_render_passes()
 #else
         attachments[2].loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 #endif
-        if (r_bloom->integer) {
+        if (vk.bloomActive) {
             attachments[2].storeOp = VK_ATTACHMENT_STORE_OP_STORE; // keep it for post-bloom pass
         }
         else {
@@ -246,7 +246,7 @@ void vk_create_render_passes()
     VK_SET_OBJECT_NAME(vk.render_pass.main, "render pass - main", VK_DEBUG_REPORT_OBJECT_TYPE_RENDER_PASS_EXT);
 
     // post-bloom pass
-    if (r_bloom->integer)
+    if (vk.bloomActive)
     {
         // color buffer
         attachments[0].loadOp = VK_ATTACHMENT_LOAD_OP_LOAD; // load from previous pass
@@ -535,7 +535,7 @@ void vk_create_framebuffers()
             VK_SET_OBJECT_NAME(vk.framebuffers.capture, "framebuffer - capture", VK_DEBUG_REPORT_OBJECT_TYPE_FRAMEBUFFER_EXT);
         }
 
-        if (r_bloom->integer)
+        if (vk.bloomActive)
         {
             uint32_t width = gls.captureWidth;
             uint32_t height = gls.captureHeight;
@@ -1014,7 +1014,7 @@ void vk_end_frame( void )
         {
             vk.cmd->last_pipeline = VK_NULL_HANDLE; // do not restore clobbered descriptors in vk_bloom()
 
-            if (r_bloom->integer)
+            if (vk.bloomActive)
                 vk_bloom();
 
             if (backEnd.screenshotMask && vk.capture.image)

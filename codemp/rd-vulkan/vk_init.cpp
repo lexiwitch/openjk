@@ -439,6 +439,10 @@ void vk_initialize( void )
 	// Anisotropy
 	ri.Printf( PRINT_ALL, "Anisotropy max: %dx, using %dx\n\n", r_ext_max_anisotropy->integer, r_ext_texture_filter_anisotropic->integer );
 
+	// Bloom
+	if (vk.fboActive && r_bloom->integer)
+		vk.bloomActive = qtrue;
+
 	// Screenmap
 	vk.screenMapSamples = MIN(vkMaxSamples, VK_SAMPLE_COUNT_4_BIT);
 	vk.screenMapWidth = (float)glConfig.vidWidth / 16.0;
