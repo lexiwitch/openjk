@@ -252,6 +252,7 @@ extern cvar_t	*r_maxpolyverts;
 extern int		max_polyverts;
 
 extern	cvar_t	*r_aspectCorrectFonts;
+extern	cvar_t	*r_aspectCorrectRotatePic2;
 
 /*
 Ghoul2 Insert Start
