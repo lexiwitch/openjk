@@ -86,6 +86,8 @@ jobs:
       run: |
         cmake --build .
         mv codemp/rd-vanilla/rd-vanilla-mbii_i386.so .
+        mv codemp/rd-vulkan/rd-vulkan-mbii_i386.so .
+        mv codemp/rd-rend2/rd-rend2-mbii_i386.so .
       
     - name: Upload Build
       uses: actions/upload-artifact@v2.2.4
