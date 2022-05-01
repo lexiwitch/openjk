@@ -443,10 +443,6 @@ void vk_initialize( void )
 	if ( vk.fboActive && r_bloom->integer )
 		vk.bloomActive = qtrue;
 
-	// Bloom
-	if (vk.fboActive && r_bloom->integer)
-		vk.bloomActive = qtrue;
-
 	// Screenmap
 	vk.screenMapSamples = MIN(vkMaxSamples, VK_SAMPLE_COUNT_4_BIT);
 	vk.screenMapWidth = (float)glConfig.vidWidth / 16.0;
