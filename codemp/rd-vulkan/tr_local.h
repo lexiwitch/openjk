@@ -57,6 +57,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #  endif
 #endif
 
+#define RF_DISTORTION_PLACEHOLDER // temp shader for gameplay until RF_DISTORTION is implemented
+
 // I know...
 #define	MAX_UINT			((unsigned)(~0))
 typedef enum {
