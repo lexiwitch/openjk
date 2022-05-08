@@ -131,6 +131,24 @@ static void R_ModeList_f( void )
 	Com_Printf( "\n" );
 }
 
+void SetOpenglSwapInterval(int interval)
+{
+	if ( interval > 1 )
+		interval = -1; //treat as wanting adaptive vsync
+	else if ( interval < -1 )
+		interval = 0;
+
+	if ( SDL_GL_SetSwapInterval(interval) == -1 )
+	{
+		Com_DPrintf("SDL_GL_SetSwapInterval failed: %s\n", SDL_GetError());
+		if ( interval == -1 )
+		{
+			Com_Printf("^3Warning: System does not support adaptive vsync. Falling back to regular.\n");
+			SDL_GL_SetSwapInterval(1);
+		}
+	}
+}
+
 /*
 ===============
 GLimp_Minimize
@@ -154,10 +172,7 @@ void WIN_Present( window_t *window )
 		if ( r_swapInterval->modified )
 		{
 			r_swapInterval->modified = qfalse;
-			if ( SDL_GL_SetSwapInterval( r_swapInterval->integer ) == -1 )
-			{
-				Com_DPrintf( "SDL_GL_SetSwapInterval failed: %s\n", SDL_GetError() );
-			}
+			SetOpenglSwapInterval(r_swapInterval->integer);
 		}
 	}
 
@@ -622,10 +637,7 @@ static rserr_t GLimp_SetMode(glconfig_t *glConfig, const windowDesc_t *windowDes
 					continue;
 				}
 
-				if (SDL_GL_SetSwapInterval(r_swapInterval->integer) == -1)
-				{
-					Com_DPrintf("SDL_GL_SetSwapInterval failed: %s\n", SDL_GetError());
-				}
+				SetOpenglSwapInterval(r_swapInterval->integer);
 			}
 
 			glConfig->colorBits = testColorBits;
