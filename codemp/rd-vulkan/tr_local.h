@@ -623,7 +623,7 @@ typedef struct shader_s {
 	float		timeOffset;                         // current time offset for this shader
 
 	
-	bool		hasGlow;							// True if this shader has a stage with glow in it (just an optimization).
+	qboolean	hasGlow;							// True if this shader has a stage with glow in it (just an optimization).
 
 	int			hasScreenMap;
 
@@ -1232,6 +1232,9 @@ typedef struct backEndState_s {
 	qboolean doneSurfaces;						// done any 3d surfaces already
 	qboolean screenMapDone;
 	qboolean doneBloom;
+
+	qboolean hasGlowSurfaces;					// renderdoc shows empty dglow pass, or passes with 2 or 3 surfaces. maybe use a min surf count instead?
+	qboolean isGlowPass;
 } backEndState_t;
 
 typedef struct drawSurfsCommand_s drawSurfsCommand_t;
