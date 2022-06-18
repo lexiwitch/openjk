@@ -72,7 +72,7 @@ cvar_t	*com_busyWait;
 
 cvar_t *com_affinity;
 
-#ifdef _WIN32
+#ifdef STEAM_INTEGRATION
 cvar_t  *com_steamIntegration;
 #endif
 
@@ -1172,7 +1172,7 @@ void Com_Init( char *commandLine ) {
 
 		FS_InitFilesystem ();
 
-#ifdef _WIN32
+#ifdef STEAM_INTEGRATION
 		com_steamIntegration = Cvar_Get("com_steamIntegration", "0", CVAR_NONE);
 #endif
 
@@ -1253,7 +1253,9 @@ void Com_Init( char *commandLine ) {
 		s = va("%s %s %s", JK_VERSION_OLD, PLATFORM_STRING, SOURCE_DATE );
 		com_version = Cvar_Get ("version", s, CVAR_ROM | CVAR_SERVERINFO );
 
+#ifdef STEAM_INTEGRATION
 		Sys_SteamInit();
+#endif
 
 		SE_Init();
 
@@ -1687,7 +1689,9 @@ void Com_Shutdown (void)
 		com_journalFile = 0;
 	}
 
+#ifdef STEAM_INTEGRATION
 	Sys_SteamShutdown();
+#endif
 
 	MSG_shutdownHuffman();
 /*
