@@ -200,7 +200,7 @@ static void vk_create_instance( void )
 
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     appInfo.pNext = NULL;
-    appInfo.pApplicationName = "EternalJK";
+    appInfo.pApplicationName = "OpenJK";
     appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
     appInfo.pEngineName = "Quake3";
     appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
@@ -290,8 +290,6 @@ static void vk_create_instance( void )
     result = qvkCreateInstance(&desc, NULL, &vk.instance);
 #endif
 
-    // switch case?
-    result = qvkCreateInstance(&desc, NULL, &vk.instance);
     switch (result) {
         case VK_SUCCESS:
             vk_debug("--- Vulkan create instance success! ---\n\n"); break;

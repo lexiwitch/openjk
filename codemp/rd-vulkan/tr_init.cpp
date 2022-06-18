@@ -931,7 +931,7 @@ void R_Register( void )
 	ri.Cvar_CheckRange(r_bloom, 0, 1, qtrue);
 	r_bloom_threshold					= ri.Cvar_Get("r_bloom_threshold",					"0.05",						CVAR_ARCHIVE_ND | CVAR_LATCH, "");
 	ri.Cvar_CheckRange(r_bloom_threshold, 0.01f, 1, qfalse);
-	r_bloom_intensity					= ri.Cvar_Get("r_bloom_intensity",					"0.15",						CVAR_ARCHIVE_ND | CVAR_LATCH, "");
+	r_bloom_intensity					= ri.Cvar_Get("r_bloom_intensity",					"0.10",						CVAR_ARCHIVE_ND | CVAR_LATCH, "");
 	ri.Cvar_CheckRange(r_bloom_intensity, 0.01f, 2, qfalse);
 #ifdef USE_PMLIGHT
 	r_dlightMode						= ri.Cvar_Get("r_dlightMode",						"1",						CVAR_ARCHIVE, "");
