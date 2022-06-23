@@ -1636,7 +1636,7 @@ Ghoul2 Insert End
 */
 //====================================================================
 
-void		R_RenderView( viewParms_t *parms );
+void		R_RenderView( const viewParms_t *parms );
 void		R_AddMD3Surfaces( trRefEntity_t *e );
 void		R_AddPolygonSurfaces( void );
 void		R_DecomposeSort( unsigned sort, int *entityNum, shader_t **shader, int *fogNum, int *dlightMap );
@@ -1651,7 +1651,6 @@ shader_t		*GeneratePermanentShader( void );
 #define	CULL_IN		0		// completely unclipped
 #define	CULL_CLIP	1		// clipped by one or more planes
 #define	CULL_OUT	2		// completely outside the clipping planes
-void		R_LocalNormalToWorld ( const vec3_t local, vec3_t world );
 void		R_LocalPointToWorld ( const vec3_t local, vec3_t world );
 void		R_WorldNormalToEntity ( const vec3_t localVec, vec3_t world );
 int			R_CullLocalBox ( const vec3_t bounds[2]);
@@ -1666,7 +1665,7 @@ void		RE_UploadCinematic( int cols, int rows, const byte *data, int client, qboo
 
 void		RE_BeginFrame( stereoFrame_t stereoFrame );
 void		RE_BeginRegistration( glconfig_t *glconfig );
-void		R_ColorShiftLightingBytes( byte in[4], byte out[4], qboolean hasAlpha ); //rwwRMG - added
+void		R_ColorShiftLightingBytes( const byte in[4], byte out[4], qboolean hasAlpha ); //rwwRMG - added
 void		RE_LoadWorldMap( const char *mapname );
 
 void		RE_SetWorldVisData( const byte *vis );
@@ -1727,7 +1726,6 @@ qhandle_t	RE_RegisterShaderLightMap( const char *name, const int *lightmapIndex,
 qhandle_t	RE_RegisterShader( const char *name );
 qhandle_t	RE_RegisterShaderNoMip( const char *name );
 const char	*RE_ShaderNameFromIndex(int index);
-qhandle_t	RE_RegisterShaderFromImage(const char *name, const int *lightmapIndex, byte *styles, image_t *image, qboolean mipRawImage);
 
 shader_t	*R_FindShader( const char *name, const int *lightmapIndex, const byte *styles, qboolean mipRawImage );
 shader_t	*R_GetShaderByHandle( qhandle_t hShader );
@@ -1885,10 +1883,8 @@ SKIES
 
 ============================================================
 */
-void R_BuildCloudData( shaderCommands_t* input );
 void R_InitSkyTexCoords( float heightCloud );
 void RB_DrawSun( float scale, shader_t* shader );
-void RB_ClipSkyPolygons( shaderCommands_t* input );
 /*
 ============================================================
 
@@ -2213,8 +2209,8 @@ qboolean ShaderHashTableExists(void);
 // Vulkan
 
 // debug
-void		DrawTris( shaderCommands_t *pInput );
-void		DrawNormals( shaderCommands_t *pInput );
+void		DrawTris( const shaderCommands_t *pInput );
+void		DrawNormals( const shaderCommands_t *pInput );
 void		RB_ShowImages( image_t** const pImg, uint32_t numImages );
 
 // ...
