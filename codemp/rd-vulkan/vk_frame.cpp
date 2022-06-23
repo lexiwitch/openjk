@@ -831,7 +831,7 @@ static void vk_begin_render_pass( VkRenderPass renderPass, VkFramebuffer frameBu
 #ifdef USE_BUFFER_CLEAR
         switch( vk.renderPassIndex ){
             case RENDER_PASS_MAIN:
-                    clear_values[ (int)( vk.msaaActive ? 2 : 0 )  ].color = { { 0.75f, 0.75f, 0.75f, 1.0f } };
+                    clear_values[ (int)( vk.msaaActive ? 2 : 0 )  ].color = { { 0.5f, 0.5f, 0.5f, 1.0f } };
                 break;
             case RENDER_PASS_DGLOW:
 
