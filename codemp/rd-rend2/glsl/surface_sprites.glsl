@@ -67,7 +67,7 @@ void main()
 		vec2(0.0, 1.0)
 	);
 
-	vec3 offset = offsets[gl_VertexID];
+	vec3 offset = offsets[gl_VertexID % 4];
 
 #if defined(FACE_CAMERA)
 	vec2 toCamera = normalize(V.xy);
@@ -79,7 +79,7 @@ void main()
 
 	vec4 worldPos = vec4(attr_Position + offset, 1.0);
 	gl_Position = u_ModelViewProjectionMatrix * worldPos;
-	var_TexCoords = texcoords[gl_VertexID];
+	var_TexCoords = texcoords[gl_VertexID % 4];
 	var_Color = attr_Color;
 	var_Alpha = 1.0 - fadeScale;
 	#if defined(USE_FOG)
