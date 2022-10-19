@@ -1,6 +1,8 @@
 /*
 ===========================================================================
-Copyright (C) 2016, OpenJK contributors
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
 
 This file is part of the OpenJK source code.
 
@@ -17,18 +19,30 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 ===========================================================================
 */
+
 #pragma once
 
-#include "qcommon/qcommon.h"
+#include "tr_local.h"
 
+#ifdef _G2_GORE
 
-struct weatherSystem_t;
-struct srfWeather_t;
+#define MAX_LODS (8)
+#define MAX_GORE_VERTS (3000)
+#define MAX_GORE_INDECIES (6000)
 
-void R_InitWeatherSystem();
-void R_InitWeatherForMap();
-void R_AddWeatherSurfaces();
-void R_ShutdownWeatherSystem();
-void RB_SurfaceWeather( srfWeather_t *surfaceType );
+//TODO: This needs to be set via a scalability cvar with some reasonable minimum value if pgore is used at all
+#define MAX_GORE_RECORDS (500)
 
-void R_WorldEffect_f(void);
+struct R2GoreTextureCoordinates
+{
+	srfG2GoreSurface_t *tex[MAX_LODS];
+
+	R2GoreTextureCoordinates();
+	~R2GoreTextureCoordinates();
+};
+
+int AllocR2GoreRecord();
+R2GoreTextureCoordinates *FindR2GoreRecord(int tag);
+void DeleteR2GoreRecord(int tag);
+
+#endif

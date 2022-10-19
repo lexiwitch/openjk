@@ -519,9 +519,11 @@ void CalculateVertexArraysFromVBO(
 	properties->vertexDataSize = 0;
 	properties->numVertexArrays = 0;
 
-	for ( int i = 0, j = 1; i < ATTR_INDEX_MAX; i++, j <<= 1 )
+	for (int i = 0, j = 1; i < ATTR_INDEX_MAX; i++, j <<= 1)
 	{
-		if ( attributes & j )
+		if (vbo->sizes[i] == 0)
+			continue;
+		if (attributes & j)
 			AddVertexArray(
 				properties,
 				i,
@@ -641,6 +643,41 @@ void RB_UpdateVBOs(unsigned int attribBits)
 
 		currentFrame->dynamicIboWriteOffset += totalIndexDataSize;
 	}
+}
+
+#define MAX_GORE_VERTS (3000)
+#define MAX_GORE_INDECIES (6000)
+//TODO: This needs to be set via a scalability cvar with some reasonable minimum value if pgore is used at all
+#define MAX_GORE_RECORDS (500)
+
+void RB_UpdateGoreVBO(srfG2GoreSurface_t *goreSurface)
+{
+	goreSurface->firstVert = tr.goreVBOCurrentIndex;
+	goreSurface->firstIndex = tr.goreIBOCurrentIndex;
+
+	if (tr.goreVBOCurrentIndex + goreSurface->numVerts >= (MAX_LODS * MAX_GORE_RECORDS * MAX_GORE_VERTS))
+		tr.goreVBOCurrentIndex = 0;
+
+	R_BindVBO(tr.goreVBO);
+	qglBufferSubData(
+		GL_ARRAY_BUFFER,
+		sizeof(g2GoreVert_t) * tr.goreVBOCurrentIndex,
+		sizeof(g2GoreVert_t) * goreSurface->numVerts,
+		goreSurface->verts
+	);
+	tr.goreVBOCurrentIndex += goreSurface->numVerts;
+
+	if (tr.goreIBOCurrentIndex + goreSurface->numVerts >= (MAX_LODS * MAX_GORE_RECORDS * MAX_GORE_INDECIES))
+		tr.goreIBOCurrentIndex = 0;
+
+	R_BindIBO(tr.goreIBO);
+	qglBufferSubData(
+		GL_ELEMENT_ARRAY_BUFFER,
+		sizeof(glIndex_t) * tr.goreIBOCurrentIndex,
+		sizeof(glIndex_t) * goreSurface->numIndexes,
+		goreSurface->indexes
+	);
+	tr.goreIBOCurrentIndex += goreSurface->numIndexes;
 }
 
 void RB_CommitInternalBufferData()

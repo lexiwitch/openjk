@@ -5,7 +5,7 @@
 #include "ghoul2/G2.h"
 #include "ghoul2/g2_local.h"
 #ifdef _G2_GORE
-#include "ghoul2/G2_gore.h"
+#include "G2_gore_r2.h"
 #endif
 
 #ifdef _MSC_VER
@@ -2428,7 +2428,7 @@ void RenderSurfaces( CRenderSurface &RS, const trRefEntity_t *ent, int entityNum
 					auto kcur = k;
 					k++;
 
-					GoreTextureCoordinates *tex = FindGoreRecord(kcur->second.mGoreTag);
+					R2GoreTextureCoordinates *tex = FindR2GoreRecord(kcur->second.mGoreTag);
 					if (!tex ||	// it is gone, lets get rid of it
 						(kcur->second.mDeleteTime &&
 						 curTime >= kcur->second.mDeleteTime)) // out of time
@@ -2452,7 +2452,7 @@ void RenderSurfaces( CRenderSurface &RS, const trRefEntity_t *ent, int entityNum
 								float(curTime - kcur->second.mGoreGrowStartTime) /
 								float(magicFactor42);  // linear
 						}
-
+#ifdef REND2_SP_MAYBE
 						if (curTime < kcur->second.mGoreGrowEndTime)
 						{
 							newSurf2->scale = Q_max(
@@ -2462,7 +2462,7 @@ void RenderSurfaces( CRenderSurface &RS, const trRefEntity_t *ent, int entityNum
 									kcur->second.mGoreGrowFactor +
 									kcur->second.mGoreGrowOffset));
 						}
-
+#endif
 						shader_t *gshader;
 						if (kcur->second.shader)
 						{
@@ -2472,7 +2472,7 @@ void RenderSurfaces( CRenderSurface &RS, const trRefEntity_t *ent, int entityNum
 						{
 							gshader = R_GetShaderByHandle(goreShader);
 						}
-
+#ifdef REND2_SP_MAYBE
 						// Set fade on surf.
 						// Only if we have a fade time set, and let us fade on
 						// rgb if we want -rww
@@ -2491,7 +2491,7 @@ void RenderSurfaces( CRenderSurface &RS, const trRefEntity_t *ent, int entityNum
 								}
 							}
 						}
-
+#endif
 						last->goreChain = newSurf2;
 						last = newSurf2;
 						R_AddDrawSurf(
@@ -3494,6 +3494,66 @@ void RB_SurfaceGhoul( CRenderableSurface *surf )
 	RB_EndSurface();
 	RB_BeginSurface(tess.shader, tess.fogNum, tess.cubemapIndex);
 
+	if (surf->alternateTex)
+	{
+		R_BindVBO(tr.goreVBO);
+		R_BindIBO(tr.goreIBO);
+
+		tess.numIndexes = surf->alternateTex->numIndexes;
+		tess.numVertexes = surf->alternateTex->numVerts;
+		tess.useInternalVBO = qfalse;
+		tess.externalIBO = tr.goreIBO;
+		tess.dlightBits = surf->dlightBits;
+		tess.minIndex = surf->alternateTex->firstVert;
+		tess.maxIndex = surf->alternateTex->firstVert + surf->alternateTex->numVerts;
+		tess.firstIndex = surf->alternateTex->firstIndex;
+
+#ifdef REND2_SP_MAYBE
+		// UNTESTED CODE
+		if (surf->scale > 1.0f)
+		{
+			tess.scale = true;
+			tess.texCoords[tess.firstIndex][0][0] = surf->scale;
+		}
+
+		//now check for fade overrides -rww
+		if (surf->fade)
+		{
+			static int lFade;
+			if (surf->fade < 1.0)
+			{
+				tess.fade = true;
+				lFade = Q_ftol(254.4f*surf->fade);
+				tess.svars.colors[tess.firstIndex][0] =
+				tess.svars.colors[tess.firstIndex][1] =
+				tess.svars.colors[tess.firstIndex][2] = Q_ftol(1.0f);
+				tess.svars.colors[tess.firstIndex][3] = lFade;
+			}
+			else if (surf->fade > 2.0f && surf->fade < 3.0f)
+			{ //hack to fade out on RGB if desired (don't want to add more to CRenderableSurface) -rww
+				tess.fade = true;
+				lFade = Q_ftol(254.4f*(surf->fade - 2.0f));
+				if (lFade < tess.svars.colors[tess.firstIndex][0])
+				{ //don't set it unless the fade is less than the current r value (to avoid brightening suddenly before we start fading)
+					tess.svars.colors[tess.firstIndex][0] = 
+					tess.svars.colors[tess.firstIndex][1] = 
+					tess.svars.colors[tess.firstIndex][2] = lFade;
+				}
+				tess.svars.colors[tess.firstIndex][3] = lFade;
+			}
+		}
+#endif
+		glState.skeletalAnimation = qtrue;
+		RB_EndSurface();
+		// So we don't lerp surfaces that shouldn't be lerped
+		glState.skeletalAnimation = qfalse;
+#ifdef REND2_SP_MAYBE
+		tess.scale = false;
+		tess.fade = false;
+#endif
+		return;
+	}
+
 	R_BindVBO(surface->vbo);
 	R_BindIBO(surface->ibo);
 
@@ -4082,11 +4142,10 @@ qboolean R_LoadMDXM(model_t *mod, void *buffer, const char *mod_name, qboolean &
 		byte *bonerefs;
 		byte *weights;
 		uint32_t *tangents;
-		vec4_t *color;
 
 		byte *data;
 		int dataSize = 0;
-		int ofsPosition, ofsNormals, ofsTexcoords, ofsBoneRefs, ofsWeights, ofsTangents, ofsColor;
+		int ofsPosition, ofsNormals, ofsTexcoords, ofsBoneRefs, ofsWeights, ofsTangents;
 		int stride = 0;
 		int numVerts = 0;
 		int numTriangles = 0;
@@ -4115,7 +4174,6 @@ qboolean R_LoadMDXM(model_t *mod, void *buffer, const char *mod_name, qboolean &
 
 		baseVertexes[mdxm->numSurfaces] = numVerts;
 
-		dataSize += 1.0 * sizeof(*color);
 		dataSize += numVerts * sizeof (*verts);
 		dataSize += numVerts * sizeof (*normals);
 		dataSize += numVerts * sizeof (*texcoords);
@@ -4126,30 +4184,27 @@ qboolean R_LoadMDXM(model_t *mod, void *buffer, const char *mod_name, qboolean &
 		// Allocate and write to memory
 		data = (byte *)ri.Hunk_AllocateTempMemory (dataSize);
 
-		color = (vec4_t *)(data);
-		ofsColor = 0;
-
-		ofsPosition = stride + sizeof(*color);
+		ofsPosition = stride;
 		verts = (vec3_t *)(data + ofsPosition);
 		stride += sizeof (*verts);
 
-		ofsNormals = stride + sizeof(*color);
+		ofsNormals = stride;
 		normals = (uint32_t *)(data + ofsNormals);
 		stride += sizeof (*normals);
 
-		ofsTexcoords = stride + sizeof(*color);
+		ofsTexcoords = stride;
 		texcoords = (vec2_t *)(data + ofsTexcoords);
 		stride += sizeof (*texcoords);
 
-		ofsBoneRefs = stride + sizeof(*color);
+		ofsBoneRefs = stride;
 		bonerefs = data + ofsBoneRefs;
 		stride += sizeof (*bonerefs) * 4;
 
-		ofsWeights = stride + sizeof(*color);
+		ofsWeights = stride;
 		weights = data + ofsWeights;
 		stride += sizeof (*weights) * 4;
 
-		ofsTangents = stride + sizeof(*color);
+		ofsTangents = stride;
 		tangents = (uint32_t *)(data + ofsTangents);
 		stride += sizeof (*tangents);
 
@@ -4270,7 +4325,6 @@ qboolean R_LoadMDXM(model_t *mod, void *buffer, const char *mod_name, qboolean &
 		}
 
 		assert ((byte *)verts == (data + dataSize));
-		VectorSet4(*color, 1.0f, 1.0f, 1.0f, 1.0f);
 
 		const char *modelName = strrchr (mdxm->name, '/');
 		if (modelName == NULL)
@@ -4284,7 +4338,6 @@ qboolean R_LoadMDXM(model_t *mod, void *buffer, const char *mod_name, qboolean &
 		ri.Hunk_FreeTempMemory (tangentsf);
 		ri.Hunk_FreeTempMemory (indices);
 
-		vbo->offsets[ATTR_INDEX_COLOR] = ofsColor;
 		vbo->offsets[ATTR_INDEX_POSITION] = ofsPosition;
 		vbo->offsets[ATTR_INDEX_NORMAL] = ofsNormals;
 		vbo->offsets[ATTR_INDEX_TEXCOORD0] = ofsTexcoords;
@@ -4292,7 +4345,6 @@ qboolean R_LoadMDXM(model_t *mod, void *buffer, const char *mod_name, qboolean &
 		vbo->offsets[ATTR_INDEX_BONE_WEIGHTS] = ofsWeights;
 		vbo->offsets[ATTR_INDEX_TANGENT] = ofsTangents;
 
-		vbo->strides[ATTR_INDEX_COLOR] = 0;
 		vbo->strides[ATTR_INDEX_POSITION] = stride;
 		vbo->strides[ATTR_INDEX_NORMAL] = stride;
 		vbo->strides[ATTR_INDEX_TEXCOORD0] = stride;
@@ -4300,7 +4352,6 @@ qboolean R_LoadMDXM(model_t *mod, void *buffer, const char *mod_name, qboolean &
 		vbo->strides[ATTR_INDEX_BONE_WEIGHTS] = stride;
 		vbo->strides[ATTR_INDEX_TANGENT] = stride;
 
-		vbo->sizes[ATTR_INDEX_COLOR] = sizeof(*color);
 		vbo->sizes[ATTR_INDEX_POSITION] = sizeof(*verts);
 		vbo->sizes[ATTR_INDEX_NORMAL] = sizeof(*normals);
 		vbo->sizes[ATTR_INDEX_TEXCOORD0] = sizeof(*texcoords);

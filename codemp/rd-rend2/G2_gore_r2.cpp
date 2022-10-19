@@ -1,6 +1,8 @@
 /*
 ===========================================================================
-Copyright (C) 2016, OpenJK contributors
+Copyright (C) 2000 - 2013, Raven Software, Inc.
+Copyright (C) 2001 - 2013, Activision, Inc.
+Copyright (C) 2013 - 2015, OpenJK contributors
 
 This file is part of the OpenJK source code.
 
@@ -17,18 +19,27 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 ===========================================================================
 */
-#pragma once
 
-#include "qcommon/qcommon.h"
+#include "G2_gore_r2.h"
+#include "../rd-common/tr_common.h"
 
+R2GoreTextureCoordinates::R2GoreTextureCoordinates()
+{
+	Com_Memset (tex, 0, sizeof (tex));
+}
 
-struct weatherSystem_t;
-struct srfWeather_t;
-
-void R_InitWeatherSystem();
-void R_InitWeatherForMap();
-void R_AddWeatherSurfaces();
-void R_ShutdownWeatherSystem();
-void RB_SurfaceWeather( srfWeather_t *surfaceType );
-
-void R_WorldEffect_f(void);
+R2GoreTextureCoordinates::~R2GoreTextureCoordinates()
+{
+	for ( int i = 0; i < MAX_LODS; i++ )
+	{
+		if ( tex[i] )
+		{
+			ri.Z_Free(tex[i]->verts);
+			tex[i]->verts = NULL;
+			ri.Z_Free(tex[i]->indexes);
+			tex[i]->indexes = NULL;
+			ri.Z_Free(tex[i]);
+			tex[i] = NULL;
+		}
+	}
+}
