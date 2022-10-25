@@ -2688,6 +2688,12 @@ static	void R_LoadFogs( world_t *worldData, lump_t *l, lump_t *brushesLump, lump
 		// get information from the shader for fog parameters
 		shader = R_FindShader( fogs->shader, lightmapsNone, stylesDefault, qtrue );
 
+		if (shader->defaultShader == qtrue || shader->fogParms.depthForOpaque == 0)
+		{
+			ri.Printf(PRINT_WARNING, "Couldn't find proper shader for bsp fog %i %s\n", i, fogs->shader);
+			shader->fogParms.depthForOpaque = 65535.f;
+		}
+
 		out->parms = shader->fogParms;
 
 		VectorSet4(out->color,
@@ -3192,7 +3198,12 @@ static void R_RenderAllCubemaps()
 		cubemapFormat = GL_RGBA16F;
 	}
 
+	// Clear everything before rendering cubemaps to make sure only visable surfaces to the cubemap are rendered
 	int frontEndMsec, backEndMsec;
+	R_IssuePendingRenderCommands();
+	RE_ClearScene();
+	R_InitNextFrame();
+	
 	for (int k = 0; k <= r_cubeMappingBounces->integer; k++)
 	{
 		bool bounce = k != 0;
