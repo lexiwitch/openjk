@@ -1637,6 +1637,9 @@ static void RB_IterateStagesGeneric( shaderCommands_t *input, const VertexArrays
 					{
 						samplerBindingsWriter.AddStaticImage(tr.whiteImage, TB_SPECULARMAP);
 					}
+
+					if (r_ssao->integer)
+						samplerBindingsWriter.AddStaticImage(tr.screenSsaoImage, TB_SSAOMAP);
 				}
 
 				if ( enableCubeMaps )
@@ -1683,7 +1686,7 @@ static void RB_IterateStagesGeneric( shaderCommands_t *input, const VertexArrays
 		{
 			uniformDataWriter.SetUniformInt(UNIFORM_LIGHTMASK, tess.dlightBits);
 			if (r_dlightMode->integer > 1)
-				samplerBindingsWriter.AddStaticImage(tr.pointShadowArrayImage, TB_SHADOWMAP2);
+				samplerBindingsWriter.AddStaticImage(tr.pointShadowArrayImage, TB_SHADOWMAPARRAY);
 		}
 		else
 			uniformDataWriter.SetUniformInt(UNIFORM_LIGHTMASK, 0);
@@ -1863,14 +1866,12 @@ void RB_StageIteratorGeneric( void )
 		// now do fog
 		//
 		const fog_t *fog = nullptr;
-		if ( tr.world )
+		if ( tr.world && input->fogNum != 0)
 		{
 			fog = tr.world->fogs + input->fogNum;
 		}
-
-		if ( fog && tess.shader->fogPass ) {
-			RB_FogPass( input, &vertexArrays );
-		}
+		if (fog && tess.shader->fogPass)
+			RB_FogPass(input, &vertexArrays);
 
 		//
 		// draw debugging stuff
