@@ -1226,8 +1226,9 @@ enum
 	SSDEF_USE_FOG						= 0x10,
 	SSDEF_FOG_MODULATE					= 0x20,
 	SSDEF_ADDITIVE						= 0x40,
+	SSDEF_FLATTENED						= 0x80,
 
-	SSDEF_ALL							= 0x7F,
+	SSDEF_ALL							= 0xFF,
 	SSDEF_COUNT							= SSDEF_ALL + 1
 };
 
@@ -1498,6 +1499,7 @@ enum viewParmFlag_t {
 	VPF_NOPOSTPROCESS	= 0x100,
 	VPF_POINTSHADOW		= 0x200,// Rendering pointlight shadow
 	VPF_SHADOWCASCADES	= 0x400,// Rendering sun shadow cascades
+	VPF_NOCLEAR			= 0x800,
 };
 using viewParmFlags_t = uint32_t;
 
@@ -1621,6 +1623,7 @@ struct srfSprites_t
 
 	shader_t *shader;
 	const surfaceSprite_t *sprite;
+	int baseVertex;
 	int numSprites;
 	int numIndices;
 	VBO_t *vbo;
@@ -2366,6 +2369,7 @@ typedef struct trGlobals_s {
 
 	qboolean				worldMapLoaded;
 	qboolean				worldDeluxeMapping;
+	qboolean				worldInternalDeluxeMapping;
 	vec2_t                  autoExposureMinMax;
 	vec3_t                  toneMinAvgMaxLevel;
 	world_t					*world;
@@ -3325,8 +3329,10 @@ public:
 		ident = src.ident;
 		boneCache = src.boneCache;
 		surfaceData = src.surfaceData;
+#ifdef _G2_GORE
 		alternateTex = src.alternateTex;
 		goreChain = src.goreChain;
+#endif
 		vboMesh = src.vboMesh;
 
 		return *this;
@@ -3347,18 +3353,18 @@ public:
 	{
 	}
 
-#ifdef _G2_GORE
 	void Init()
 	{
 		ident = SF_MDX;
 		boneCache = nullptr;
 		surfaceData = nullptr;
+#ifdef _G2_GORE
 		alternateTex = nullptr;
 		goreChain = nullptr;
+#endif
 		vboMesh = nullptr;
 		genShadows = qfalse;
 	}
-#endif
 };
 
 void R_AddGhoulSurfaces( trRefEntity_t *ent, int entityNum );
@@ -3739,6 +3745,7 @@ struct DrawCommand
 			GLenum indexType;
 			GLsizei numIndices;
 			glIndex_t firstIndex;
+			glIndex_t baseVertex;
 		} indexed;
 
 		struct DrawArrays

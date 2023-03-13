@@ -97,13 +97,13 @@ void main()
 #if defined(FACE_CAMERA)
 	vec2 toCamera = normalize(V.xy);
 	offset.xy = offset.x*vec2(toCamera.y, -toCamera.x);
+#elif defined(FACE_FLATTENED)
+	// Make this sprite face in some direction
+	offset.xy = offset.x * attr_Normal.xy;
 #elif !defined(FACE_UP)
 	// Make this sprite face in some direction in direction of the camera
 	vec2 toCamera = normalize(V.xy);
 	offset.xy = offset.x * (attr_Normal.xy + 3.0 * vec2(toCamera.y, -toCamera.x)) * 0.25;
-#else
-	// Make this sprite face in some direction
-	// offset.xy = offset.x * attr_Normal.xy;
 #endif
 
 #if !defined(FACE_UP) && !defined(FX_SPRITE)
@@ -219,7 +219,20 @@ float CalcFog(in vec3 viewOrigin, in vec3 position, in Fog fog)
 
 void main()
 {
+#if defined(ALPHA_TEST)
+	float alphaTestValue = 0.5;
+	if (u_AlphaTestType == ALPHA_TEST_GT0)
+	{
+		alphaTestValue = 0.0;
+	}
+	else if (u_AlphaTestType == ALPHA_TEST_GE192)
+	{
+		alphaTestValue = 0.75;
+	}
+#else
 	const float alphaTestValue = 0.5;
+#endif
+	
 	out_Color = texture(u_DiffuseMap, var_TexCoords);
 	out_Color.rgb *= var_Color;
 	out_Color.a *= var_Alpha*(1.0 - alphaTestValue) + alphaTestValue;

@@ -370,6 +370,9 @@ static size_t GLSL_GetShaderHeader(
 		Q_strcat(dest, size, va("#define r_deluxeSpecular %f\n", r_deluxeSpecular->value));
 	}
 
+	if (r_hdr->integer && (r_toneMap->integer || r_forceToneMap->integer))
+		Q_strcat(dest, size, "#define USE_TONEMAPPING\n");
+
 	if (extra)
 	{
 		Q_strcat(dest, size, extra);
@@ -1532,6 +1535,12 @@ static int GLSL_LoadGPUProgramFogPass(
 		}
 
 		GLSL_InitUniforms(&tr.fogShader[i]);
+
+		qglUseProgram(tr.fogShader[i].program);
+		if (i & FOGDEF_USE_ALPHA_TEST)
+			GLSL_SetUniformInt(&tr.fogShader[i], UNIFORM_DIFFUSEMAP, 0);
+		qglUseProgram(0);
+
 		GLSL_FinishGPUShader(&tr.fogShader[i]);
 		
 		++numPrograms;
@@ -1588,7 +1597,7 @@ static int GLSL_LoadGPUProgramRefraction(
 		if (!GLSL_LoadGPUShader(builder, &tr.refractionShader[i], "refraction", attribs, NO_XFB_VARS,
 			extradefines, *programDesc))
 		{
-			ri.Error(ERR_FATAL, "Could not load generic shader!");
+			ri.Error(ERR_FATAL, "Could not load refraction shader!");
 		}
 
 		GLSL_InitUniforms(&tr.refractionShader[i]);
@@ -2251,6 +2260,9 @@ static int GLSL_LoadGPUProgramSurfaceSprites(
 		else if ( i & SSDEF_FACE_UP )
 			Q_strcat(extradefines, sizeof(extradefines),
 					"#define FACE_UP\n");
+		else if (i & SSDEF_FLATTENED)
+			Q_strcat(extradefines, sizeof(extradefines),
+				"#define FACE_FLATTENED\n");
 
 		if (i & SSDEF_FX_SPRITE)
 			Q_strcat(extradefines, sizeof(extradefines),

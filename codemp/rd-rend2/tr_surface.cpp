@@ -2164,6 +2164,9 @@ static void RB_SurfaceSprites( srfSprites_t *surf )
 	if (ss->facing == SURFSPRITE_FACING_UP)
 		shaderFlags |= SSDEF_FACE_UP;
 
+	if (ss->facing == SURFSPRITE_FACING_NORMAL)
+		shaderFlags |= SSDEF_FLATTENED;
+
 	if (ss->type == SURFSPRITE_EFFECT || ss->type == SURFSPRITE_WEATHERFX)
 		shaderFlags |= SSDEF_FX_SPRITE;
 
@@ -2231,6 +2234,7 @@ static void RB_SurfaceSprites( srfSprites_t *surf )
 	item.draw.params.indexed.indexType = GL_UNSIGNED_SHORT;
 	item.draw.params.indexed.firstIndex = 0;
 	item.draw.params.indexed.numIndices = surf->numIndices;
+	item.draw.params.indexed.baseVertex = surf->baseVertex;
 
 	tess.externalIBO = surf->ibo;
 

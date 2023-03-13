@@ -606,7 +606,7 @@ void RB_BeginDrawingView (void) {
 	if (tr.world && tr.world->skyboxportal == 1 && !(backEnd.refdef.rdflags & RDF_SKYBOXPORTAL))
 		clearBits &= ~GL_COLOR_BUFFER_BIT;
 
-	if (clearBits > 0)
+	if (clearBits > 0 && !(backEnd.viewParms.flags & VPF_NOCLEAR))
 		qglClear( clearBits );
 
 	if (backEnd.viewParms.targetFbo == NULL)
@@ -1106,7 +1106,8 @@ static void RB_DrawItems(
 					drawItem.draw.params.indexed.numIndices,
 					drawItem.draw.params.indexed.indexType,
 					drawItem.draw.params.indexed.firstIndex,
-					drawItem.draw.numInstances, 0);
+					drawItem.draw.numInstances, 
+					drawItem.draw.params.indexed.baseVertex);
 				break;
 			}
 
@@ -2130,7 +2131,6 @@ static void RB_RenderSSAO()
 	GL_BindToTMU(tr.hdrDepthImage, TB_COLORMAP);
 	GLSL_SetUniformVec4(&tr.ssaoShader, UNIFORM_VIEWINFO, viewInfo);
 
-	//RB_InstantQuad2(quadVerts, texCoords);
 	RB_InstantTriangle();
 
 	FBO_Bind(tr.quarterFbo[1]);
@@ -2144,7 +2144,6 @@ static void RB_RenderSSAO()
 	GL_BindToTMU(tr.hdrDepthImage, TB_LIGHTMAP);
 	GLSL_SetUniformVec4(&tr.depthBlurShader[0], UNIFORM_VIEWINFO, viewInfo);
 
-	//RB_InstantQuad2(quadVerts, texCoords);
 	RB_InstantTriangle();
 
 	FBO_Bind(tr.screenSsaoFbo);
@@ -2158,7 +2157,6 @@ static void RB_RenderSSAO()
 	GL_BindToTMU(tr.hdrDepthImage, TB_LIGHTMAP);
 	GLSL_SetUniformVec4(&tr.depthBlurShader[1], UNIFORM_VIEWINFO, viewInfo);
 
-	//RB_InstantQuad2(quadVerts, texCoords);
 	RB_InstantTriangle();
 }
 
@@ -2198,9 +2196,11 @@ static void RB_RenderDepthOnly( drawSurf_t *drawSurfs, int numDrawSurfs )
 	{
 		// need the depth in a texture we can do GL_LINEAR sampling on, so
 		// copy it to an HDR image
+		vec4i_t srcBox;
+		VectorSet4(srcBox, 0, tr.renderDepthImage->height, tr.renderDepthImage->width, -tr.renderDepthImage->height);
 		FBO_BlitFromTexture(
 			tr.renderDepthImage,
-			nullptr,
+			srcBox,
 			nullptr,
 			tr.hdrDepthFbo,
 			nullptr,
@@ -2771,7 +2771,7 @@ static void Fill_SpriteBlock( srfSprites_t *surf , SurfaceSpriteBlock *surfaceSp
 	surfaceSpriteBlock->fxGrow[1] = ss->fxGrow[1];
 	surfaceSpriteBlock->fxDuration = ss->fxDuration;
 	surfaceSpriteBlock->fadeStartDistance = ss->fadeDist;
-	surfaceSpriteBlock->fadeEndDistance = ss->fadeMax;
+	surfaceSpriteBlock->fadeEndDistance = MAX(ss->fadeDist + 250.f, ss->fadeMax);
 	surfaceSpriteBlock->fadeScale = ss->fadeScale;
 	surfaceSpriteBlock->wind = ss->wind;
 	surfaceSpriteBlock->windIdle = ss->windIdle;

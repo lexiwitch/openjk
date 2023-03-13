@@ -233,7 +233,7 @@ static	void R_LoadLightmaps( world_t *worldData, lump_t *l, lump_t *surfs ) {
 	else
 	{
 		tr.worldDeluxeMapping = qtrue;
-
+		tr.worldInternalDeluxeMapping = qtrue;
 		// Check that none of the deluxe maps are referenced by any of the map surfaces.
 		for (i = 0, surf = (dsurface_t *)(fileBase + surfs->fileofs);
 			tr.worldDeluxeMapping && i < surfs->filelen / sizeof(dsurface_t);
@@ -244,6 +244,7 @@ static	void R_LoadLightmaps( world_t *worldData, lump_t *l, lump_t *surfs ) {
 
 				if (lightmapNum >= 0 && (lightmapNum & 1) != 0) {
 					tr.worldDeluxeMapping = qfalse;
+					tr.worldInternalDeluxeMapping = qfalse;
 					break;
 				}
 			}
@@ -558,6 +559,62 @@ static	void R_LoadLightmaps( world_t *worldData, lump_t *l, lump_t *surfs ) {
 					0);
 			}
 		}
+		else if (r_deluxeMapping->integer && !tr.worldDeluxeMapping && !r_mergeLightmaps->integer)
+		{
+			char filename[MAX_QPATH];
+			byte *externalLightmap = NULL;
+			int lightmapWidth = tr.lightmapSize;
+			int lightmapHeight = tr.lightmapSize;
+
+			// try loading additional deluxemaps
+			Com_sprintf(filename, sizeof(filename), "maps/%s/dm_%04d.tga", worldData->baseName, i);
+			R_LoadImage(filename, &externalLightmap, &lightmapWidth, &lightmapHeight);
+			if (!externalLightmap)
+				continue;
+
+			int newImageSize = lightmapWidth * lightmapHeight * 4 * 2;
+			if (newImageSize > imageSize)
+			{
+				Z_Free(image);
+				imageSize = newImageSize;
+				image = (byte *)Z_Malloc(imageSize, TAG_BSP, qfalse);
+			}
+
+			buf_p = externalLightmap;
+
+			for (j = 0; j < lightmapWidth * lightmapHeight; j++) {
+				image[j * 4 + 0] = buf_p[j * 4 + 0];
+				image[j * 4 + 1] = buf_p[j * 4 + 1];
+				image[j * 4 + 2] = buf_p[j * 4 + 2];
+
+				// make 0,0,0 into 127,127,127
+				if ((image[j * 4 + 0] == 0) && (image[j * 4 + 1] == 0) && (image[j * 4 + 2] == 0))
+				{
+					image[j * 4 + 0] =
+					image[j * 4 + 1] =
+					image[j * 4 + 2] = 127;
+				}
+
+				image[j * 4 + 3] = 255;
+			}
+
+			if (!tr.deluxemaps)
+				tr.deluxemaps = (image_t **)ri.Hunk_Alloc(tr.numLightmaps * sizeof(image_t *), h_low);
+
+			tr.deluxemaps[i] = R_CreateImage(
+				va("*deluxemap%d", i),
+				image,
+				lightmapWidth,
+				lightmapHeight,
+				IMGTYPE_DELUXE,
+				IMGFLAG_NOLIGHTSCALE |
+				IMGFLAG_NO_COMPRESSION |
+				IMGFLAG_CLAMPTOEDGE,
+				0);
+
+			Z_Free(externalLightmap);
+			externalLightmap = NULL;
+		}
 	}
 
 	if ( r_lightmap->integer == 2 )	{
@@ -565,6 +622,9 @@ static	void R_LoadLightmaps( world_t *worldData, lump_t *l, lump_t *surfs ) {
 	}
 
 	Z_Free(image);
+
+	if (tr.deluxemaps)
+		tr.worldDeluxeMapping = qtrue;
 	}
 
 
@@ -612,7 +672,7 @@ static int FatLightmap(int lightmapnum)
 	if (lightmapnum < 0)
 		return lightmapnum;
 
-	if (tr.worldDeluxeMapping)
+	if (tr.worldInternalDeluxeMapping)
 		lightmapnum >>= 1;
 
 	if (tr.lightmapAtlasSize[0] > 0)
@@ -3209,6 +3269,39 @@ static void R_RenderAllCubemaps()
 }
 
 
+void R_LoadWeatherZones()
+{
+	char spawnVarChars[2048];
+	int numSpawnVars;
+	char *spawnVars[MAX_SPAWN_VARS][2];
+
+	while (R_ParseSpawnVars(spawnVarChars, sizeof(spawnVarChars), &numSpawnVars, spawnVars))
+	{
+		vec3_t mins, maxs;
+		qboolean isWeatherZone = qfalse;
+		char *model = NULL;
+
+		for (int i = 0; i < numSpawnVars; i++)
+		{
+			if (!Q_stricmp(spawnVars[i][0], "classname") && !Q_stricmp(spawnVars[i][1], "misc_weather_zone"))
+			{
+				isWeatherZone = qtrue;
+			}
+			if (!Q_stricmp(spawnVars[i][0], "model"))
+			{
+				model = spawnVars[i][1];
+			}
+		}
+
+		if (isWeatherZone == qtrue && model != NULL)
+		{
+			R_ModelBounds(RE_RegisterModel(model), mins, maxs);
+			R_AddWeatherZone(mins, maxs);
+		}
+	}
+}
+
+
 /*
 =================
 R_MergeLeafSurfaces
@@ -3607,10 +3700,54 @@ static uint32_t UpdateHash( const char *text, uint32_t hash )
 	return (hash ^ (hash >> 10) ^ (hash >> 20));
 }
 
-static std::vector<sprite_t> R_CreateSurfaceSpritesVertexData(
+static uint32_t R_CountSurfaceSprites(
 	const srfBspSurface_t *bspSurf,
 	float density,
 	const shaderStage_t *stage)
+{
+	uint32_t numStageSprites = 0;
+
+	const srfVert_t *verts = bspSurf->verts;
+	const glIndex_t *indexes = bspSurf->indexes;
+
+	for (int i = 0, numIndexes = bspSurf->numIndexes; i < numIndexes; i += 3)
+	{
+		const srfVert_t *v0 = verts + indexes[i + 0];
+		const srfVert_t *v1 = verts + indexes[i + 1];
+		const srfVert_t *v2 = verts + indexes[i + 2];
+
+		vec3_t p0, p1, p2;
+		VectorCopy(v0->xyz, p0);
+		VectorCopy(v1->xyz, p1);
+		VectorCopy(v2->xyz, p2);
+
+		const vec2_t p01 = { p1[0] - p0[0], p1[1] - p0[1] };
+		const vec2_t p02 = { p2[0] - p0[0], p2[1] - p0[1] };
+
+		const float zarea = std::fabs(p02[0] * p01[1] - p02[1] * p01[0]);
+		if (zarea <= 1.0)
+		{
+			// Triangle's area is too small to consider.
+			continue;
+		}
+
+		const float step = density * Q_rsqrt(zarea);
+		for (float a = 0.0f; a < 1.0f; a += step)
+		{
+			for (float b = 0.0f, bend = (1.0f - a); b < bend; b += step)
+			{
+				numStageSprites += 1;
+			}
+		}
+	}
+	return numStageSprites;
+}
+
+static int R_CreateSurfaceSpritesVertexData(
+	const srfBspSurface_t *bspSurf,
+	float density,
+	const shaderStage_t *stage,
+	std::vector<sprite_t> *sprites)
 {
 	const srfVert_t *verts = bspSurf->verts;
 	const glIndex_t *indexes = bspSurf->indexes;
@@ -3628,8 +3765,7 @@ static std::vector<sprite_t> R_CreateSurfaceSpritesVertexData(
 		stage->rgbGen == CGEN_VERTEX_LIT ||
 		stage->rgbGen == CGEN_EXACT_VERTEX_LIT);
 
-	std::vector<sprite_t> sprites;
-	sprites.reserve(10000);
+	int numSprites = 0;
 	for ( int i = 0, numIndexes = bspSurf->numIndexes; i < numIndexes; i += 3 )
 	{
 		const srfVert_t *v0 = verts + indexes[i + 0];
@@ -3713,15 +3849,15 @@ static std::vector<sprite_t> R_CreateSurfaceSpritesVertexData(
 				sprite.skew[0] = stage->ss->height * stage->ss->vertSkew * flrand(-1.0f, 1.0f);
 				sprite.skew[1] = stage->ss->height * stage->ss->vertSkew * flrand(-1.0f, 1.0f);
 
-				// We have 4 copies for each corner of the quad
-				sprites.push_back(sprite);
-				sprites.push_back(sprite);
-				sprites.push_back(sprite);
-				sprites.push_back(sprite);
+				sprites->push_back(sprite);
+				sprites->push_back(sprite);
+				sprites->push_back(sprite);
+				sprites->push_back(sprite);
+				++numSprites;
 			}
 		}
 	}
-	return sprites;
+	return numSprites;
 }
 
 static void R_GenerateSurfaceSprites(
@@ -3729,7 +3865,8 @@ static void R_GenerateSurfaceSprites(
 	const shader_t *shader,
 	const shaderStage_t *stage,
 	const int fogIndex,
-	srfSprites_t *out)
+	srfSprites_t *out,
+	std::vector<sprite_t> *sprites)
 {
 	const surfaceSprite_t *surfaceSprite = stage->ss;
 	const textureBundle_t *bundle = &stage->bundle[0];
@@ -3738,29 +3875,16 @@ static void R_GenerateSurfaceSprites(
 	for ( int i = 0; bundle->image[i]; ++i )
 		hash = UpdateHash(bundle->image[i]->imgName, hash);
 
-	std::vector<sprite_t> sprites =
-		R_CreateSurfaceSpritesVertexData(bspSurf, surfaceSprite->density, stage);
-
-	int numSprites = sprites.size() / 4;
-	int numIndices = numSprites * 6;
-	uint16_t *indices = (uint16_t*)Z_Malloc(numIndices * sizeof(uint16_t), TAG_BSP);
-	for (int i = 0; i < numIndices; i++)
-	{
-		const uint16_t face_indices[] = { 0, 1, 2, 0, 2, 3 };
-		int vert_index = face_indices[i % 6] + int(i / 6)*4;
-		indices[i] = vert_index;
-	}
-
+	out->baseVertex = sprites->size();
 	out->surfaceType = SF_SPRITES;
 	out->sprite = surfaceSprite;
-	out->numSprites = numSprites;
-	out->numIndices = numIndices;
+	//R_CreateSurfaceSpritesVertexData(bspSurf, surfaceSprite->density, stage, sprites);
+	out->numSprites = R_CreateSurfaceSpritesVertexData(bspSurf, surfaceSprite->density, stage, sprites);
+	out->numIndices = out->numSprites * 6;
 	out->fogIndex = fogIndex;
-	// FIXME: Use big preallocated vbo/ibo to store all sprites in one vao
-	out->vbo = R_CreateVBO((byte *)sprites.data(),
-			sizeof(sprite_t) * sprites.size(), VBO_USAGE_STATIC);
 
-	out->ibo = R_CreateIBO((byte *)indices, numIndices * sizeof(uint16_t), VBO_USAGE_STATIC);
+	out->vbo = NULL;
+	out->ibo = NULL;
 
 	// FIXME: Need a better way to handle this.
 	out->shader = R_CreateShaderFromTextureBundle(va("*ss_%08x\n", hash),
@@ -3817,6 +3941,25 @@ static void R_GenerateSurfaceSprites(
 static void R_GenerateSurfaceSprites( const world_t *world )
 {
 	msurface_t *surfaces = world->surfaces;
+	std::vector<sprite_t> sprites_data;
+	sprites_data.reserve(65535);
+	IBO_t *ibo;
+
+	{
+		std::vector<uint16_t> sprites_index_data;
+		sprites_index_data.reserve(98298);
+		for (int i = 0; i < 98299; i++)
+		{
+			const uint16_t face_indices[] = { 0, 1, 2, 0, 2, 3 };
+			int vert_index = face_indices[i % 6] + (int(i / 6) * 4);
+			sprites_index_data.push_back(vert_index);
+		}
+		ibo = R_CreateIBO((byte *)sprites_index_data.data(), sprites_index_data.size() * sizeof(uint16_t), VBO_USAGE_STATIC);
+	}
+
+	std::vector<srfSprites_t *> currentBatch;
+	currentBatch.reserve(65535); // worst case, theres at least 65535 surfaces with exactly one sprite
+
 	for ( int i = 0, numSurfaces = world->numsurfaces; i < numSurfaces; ++i )
 	{
 		msurface_t *surf = surfaces + i;
@@ -3854,7 +3997,29 @@ static void R_GenerateSurfaceSprites( const world_t *world )
 					}
 
 					srfSprites_t *sprite = surf->surfaceSprites + surfaceSpriteNum;
-					R_GenerateSurfaceSprites(bspSurf, shader, stage, surf->fogIndex, sprite);
+					int numCurrentSurfaceSprites = R_CountSurfaceSprites(bspSurf, stage->ss->density, stage);
+					if ((sprites_data.size() + numCurrentSurfaceSprites * 4) > 65535)
+					{
+						VBO_t *vbo = R_CreateVBO((byte *)sprites_data.data(),
+							sizeof(sprite_t) * sprites_data.size(), VBO_USAGE_STATIC);
+						
+						for (srfSprites_t *sp : currentBatch) 
+						{
+							sp->vbo = vbo;
+							sp->ibo = ibo;
+							sp->attributes[0].vbo = vbo;
+							sp->attributes[1].vbo = vbo;
+							sp->attributes[2].vbo = vbo;
+							sp->attributes[3].vbo = vbo;
+						}
+
+						sprites_data.clear();
+						currentBatch.clear();
+					}
+
+					R_GenerateSurfaceSprites(bspSurf, shader, stage, surf->fogIndex, sprite, &sprites_data);
+					currentBatch.push_back(sprite);
+
 					++surfaceSpriteNum;
 				}
 				break;
@@ -3863,6 +4028,19 @@ static void R_GenerateSurfaceSprites( const world_t *world )
 			default:
 				break;
 		}
+	}
+
+	VBO_t *vbo = R_CreateVBO((byte *)sprites_data.data(),
+		sizeof(sprite_t) * sprites_data.size(), VBO_USAGE_STATIC);
+
+	for (srfSprites_t *sp : currentBatch)
+	{
+		sp->vbo = vbo;
+		sp->ibo = ibo;
+		sp->attributes[0].vbo = vbo;
+		sp->attributes[1].vbo = vbo;
+		sp->attributes[2].vbo = vbo;
+		sp->attributes[3].vbo = vbo;
 	}
 }
 
@@ -4066,6 +4244,7 @@ void RE_LoadWorldMap( const char *name ) {
 	tr.worldMapLoaded = qtrue;
 	tr.world = world;
 
+	R_LoadWeatherZones();
 	R_InitWeatherForMap();
 
 	// Render all cubemaps

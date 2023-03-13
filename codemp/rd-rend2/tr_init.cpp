@@ -1727,7 +1727,7 @@ static void R_InitGoreVao()
 {
 	tr.goreVBO = R_CreateVBO(
 		nullptr,
-		sizeof(g2GoreVert_t) * MAX_LODS * MAX_GORE_RECORDS * MAX_GORE_VERTS,
+		sizeof(g2GoreVert_t) * MAX_LODS * MAX_GORE_RECORDS * MAX_GORE_VERTS * MAX_FRAMES,
 		VBO_USAGE_DYNAMIC);
 	tr.goreVBO->offsets[ATTR_INDEX_POSITION] = offsetof(g2GoreVert_t, position);
 	tr.goreVBO->offsets[ATTR_INDEX_NORMAL] = offsetof(g2GoreVert_t, normal);
@@ -1752,7 +1752,7 @@ static void R_InitGoreVao()
 
 	tr.goreIBO = R_CreateIBO(
 		nullptr,
-		sizeof(glIndex_t) * MAX_LODS * MAX_GORE_RECORDS * MAX_GORE_INDECIES,
+		sizeof(glIndex_t) * MAX_LODS * MAX_GORE_RECORDS * MAX_GORE_INDECIES * MAX_FRAMES,
 		VBO_USAGE_DYNAMIC);
 
 	tr.goreIBOCurrentIndex = 0;
@@ -2063,7 +2063,7 @@ void RE_SetLightStyle(int style, int color)
 void RE_GetBModelVerts(int bmodelIndex, vec3_t *verts, vec3_t normal);
 void RE_WorldEffectCommand(const char *cmd);
 
-void stub_RE_AddWeatherZone ( vec3_t mins, vec3_t maxs ) {}
+void stub_RE_AddWeatherZone ( vec3_t mins, vec3_t maxs ) {} // Intentionally left blank. Rend2 reads the zones manually on bsp load
 static void RE_SetRefractionProperties ( float distortionAlpha, float distortionStretch, qboolean distortionPrePost, qboolean distortionNegate ) { }
 
 void C_LevelLoadBegin(const char *psMapName, ForceReload_e eForceReload)
