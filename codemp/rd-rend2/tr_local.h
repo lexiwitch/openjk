@@ -696,6 +696,7 @@ struct SurfaceSpriteBlock
 
 struct CameraBlock
 {
+	matrix_t viewProjectionMatrix;
 	vec4_t viewInfo;
 	vec3_t viewOrigin;
 	float pad0;
@@ -715,7 +716,8 @@ struct SceneBlock
 	vec3_t primaryLightColor;
 	float primaryLightRadius;
 	float currentTime;
-	float pad0[3];
+	float frameTime;
+	float pad0[2];
 };
 
 struct LightsBlock
@@ -752,7 +754,6 @@ struct FogsBlock
 struct EntityBlock
 {
 	matrix_t modelMatrix;
-	matrix_t modelViewProjectionMatrix;
 	vec4_t lightOrigin;
 	vec3_t ambientLight;
 	float lightRadius;
@@ -2487,7 +2488,9 @@ typedef struct trGlobals_s {
 
 	GLuint staticUbo;
 	int entity2DUboOffset;
+	int camera2DUboOffset;
 	int entityFlareUboOffset;
+	int cameraFlareUboOffset;
 
 	int cameraUboOffset;
 
