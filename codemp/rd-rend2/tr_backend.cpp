@@ -2570,7 +2570,7 @@ static void RB_UpdateShaderEntityConstants(
 	shaderInstanceBlock.time =
 		backEnd.refdef.floatTime - shader->timeOffset;
 	if (entityNum != REFENTITYNUM_WORLD)
-		shaderInstanceBlock.time = backEnd.refdef.floatTime - refEntity->e.shaderTime;
+		shaderInstanceBlock.time -= refEntity->e.shaderTime;
 
 	const int uboOffset = RB_AppendConstantsData(
 		frame, &shaderInstanceBlock, sizeof(shaderInstanceBlock));
