@@ -2513,9 +2513,11 @@ typedef struct trGlobals_s {
 	int camera2DUboOffset;
 	int entityFlareUboOffset;
 	int cameraFlareUboOffset;
+	int defaultLightsUboOffset;
+	int defaultSceneUboOffset;
+	int defaultFogsUboOffset;
 
 	int cameraUboOffset;
-
 	int sceneUboOffset;
 	int lightsUboOffset;
 	int fogsUboOffset;
