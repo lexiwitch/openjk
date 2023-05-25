@@ -838,6 +838,7 @@ typedef struct srfFlare_s {
 	vec3_t			origin;
 	vec3_t			normal;
 	vec3_t			color;
+	shader_t		*shader;
 } srfFlare_t;
 
 #define VERTEX_LM			5
@@ -1101,11 +1102,13 @@ the bits are allocated as follows:
 0-1   : dlightmap index
 */
 
+#define	DLIGHT_BITS 1 // qboolean in opengl1 renderer
+#define	DLIGHT_MASK ( ( 1 << DLIGHT_BITS) - 1 )
 #define	FOGNUM_BITS 5
 #define	FOGNUM_MASK ( (1 << FOGNUM_BITS ) - 1 )
 
-#define	QSORT_FOGNUM_SHIFT		2
-#define	QSORT_REFENTITYNUM_SHIFT	7
+#define	QSORT_FOGNUM_SHIFT	DLIGHT_BITS
+#define	QSORT_REFENTITYNUM_SHIFT ( QSORT_FOGNUM_SHIFT + FOGNUM_BITS )
 #define	QSORT_SHADERNUM_SHIFT	( QSORT_REFENTITYNUM_SHIFT + REFENTITYNUM_BITS )
 #if (QSORT_SHADERNUM_SHIFT+SHADERNUM_BITS) > 32
 	#error "Need to update sorting, too many bits."
@@ -1561,9 +1564,9 @@ extern	cvar_t	*r_clear;				// force screen clear every frame
 
 extern	cvar_t	*r_shadows;				// controls shadows: 0 = none, 1 = blur, 2 = stencil, 3 = black planar projection
 extern	cvar_t	*r_flares;				// light flares
-extern	cvar_t	*r_flareSize;			// light flare size
+//extern	cvar_t	*r_flareSize;			// light flare size
 extern cvar_t	*r_flareFade;
-extern cvar_t	*r_flareCoeff;			// coefficient for the flare intensity falloff function. 
+//extern cvar_t	*r_flareCoeff;			// coefficient for the flare intensity falloff function. 
 
 extern	cvar_t	*r_intensity;
 
@@ -2213,7 +2216,6 @@ void		DrawNormals( const shaderCommands_t *pInput );
 void		RB_ShowImages( image_t** const pImg, uint32_t numImages );
 
 // ...
-void		FixRenderCommandList( int newShader );
 void		R_ClearShaderHashTable( void );
 void		R_IssueRenderCommands( qboolean runPerformanceCounters );
 void		WIN_Shutdown( void );

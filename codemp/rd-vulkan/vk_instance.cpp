@@ -55,7 +55,7 @@ PFN_vkGetPhysicalDeviceSurfaceFormatsKHR		qvkGetPhysicalDeviceSurfaceFormatsKHR;
 PFN_vkGetPhysicalDeviceSurfacePresentModesKHR	qvkGetPhysicalDeviceSurfacePresentModesKHR;
 PFN_vkGetPhysicalDeviceSurfaceSupportKHR		qvkGetPhysicalDeviceSurfaceSupportKHR;
 
-#ifndef NDEBUG
+#ifdef USE_VK_VALIDATION
 PFN_vkCreateDebugReportCallbackEXT				qvkCreateDebugReportCallbackEXT;
 PFN_vkDestroyDebugReportCallbackEXT				qvkDestroyDebugReportCallbackEXT;
 #endif
