@@ -1682,6 +1682,7 @@ static void R_InitBackEndFrameData()
 		frame->uboWriteOffset = 0;
 		frame->uboSize = FRAME_UNIFORM_BUFFER_SIZE;
 		qglBindBuffer(GL_UNIFORM_BUFFER, frame->ubo);
+		glState.currentGlobalUBO = frame->ubo;
 
 		// TODO: persistently mapped UBOs
 		qglBufferData(GL_UNIFORM_BUFFER, FRAME_UNIFORM_BUFFER_SIZE,
@@ -1858,6 +1859,11 @@ static void R_InitStaticConstants()
 	qglBufferSubData(
 		GL_UNIFORM_BUFFER, tr.defaultShaderInstanceUboOffset, sizeof(shaderInstanceBlock), &shaderInstanceBlock);
 	alignedBlockSize += (sizeof(ShaderInstanceBlock) + alignment) & ~alignment;
+
+	qglBindBuffer(GL_UNIFORM_BUFFER, NULL);
+	glState.currentGlobalUBO = -1;
+
+	GL_CheckErrors();
 }
 
 static void R_ShutdownBackEndFrameData()
