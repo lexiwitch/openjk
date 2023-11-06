@@ -4303,14 +4303,15 @@ world_t *R_LoadBSP(const char *name, int *bspIndex)
 		// Try loading an env.json file first
 		R_LoadEnvironmentJson(worldData->baseName);
 
-		const int numCubemapEntities = 5;
+		const int numCubemapEntities = 6;
 		const char *cubemapEntities[numCubemapEntities] =
 		{
 			"misc_cubemap",
-			"info_player_deathmatch",
+			"target_location",
 			"info_player_start",
-			"info_player_duel",
 			"info_player_intermission",
+			"info_player_deathmatch",
+			"info_player_duel",
 		};
 
 		if (!tr.numCubemaps)
