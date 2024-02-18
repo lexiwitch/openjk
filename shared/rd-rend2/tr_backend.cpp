@@ -2303,8 +2303,7 @@ static void RB_UpdateEntityLightConstants(
 	}
 
 	VectorCopy(lightDir, entityBlock.modelLightDir);
-	entityBlock.lightOrigin[3] = 0.0f;
-	entityBlock.lightRadius = lightRadius;
+	entityBlock.lightOrigin[3] = lightRadius;
 }
 
 static void RB_UpdateEntityMatrixConstants(
@@ -2314,7 +2313,6 @@ static void RB_UpdateEntityMatrixConstants(
 	orientationr_t ori;
 	R_RotateForEntity(refEntity, &backEnd.viewParms, &ori);
 	Matrix16Copy(ori.modelMatrix, entityBlock.modelMatrix);
-	VectorCopy(ori.viewOrigin, entityBlock.localViewOrigin);
 }
 
 static void RB_UpdateEntityModelConstants(
