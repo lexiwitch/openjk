@@ -2259,6 +2259,12 @@ static void RB_UpdateFogsConstants(gpuFrame_t *frame)
 		fogsBlock.numFogs = tr.world->numfogs - 1; // Don't reserve fog 0 as 'null'
 	}
 
+	if (fogsBlock.numFogs > MAX_GPU_FOGS)
+	{
+		ri.Printf(PRINT_DEVELOPER, "Too many fogs in current map. Increase MAX_GPU_FOGS\n");
+		fogsBlock.numFogs = MAX_GPU_FOGS;
+	}
+
 	for (int i = 0; i < fogsBlock.numFogs; ++i)
 	{
 		const fog_t *fog = tr.world->fogs + i + 1;
@@ -2297,8 +2303,7 @@ static void RB_UpdateEntityLightConstants(
 	}
 
 	VectorCopy(lightDir, entityBlock.modelLightDir);
-	entityBlock.lightOrigin[3] = 0.0f;
-	entityBlock.lightRadius = lightRadius;
+	entityBlock.lightOrigin[3] = lightRadius;
 }
 
 static void RB_UpdateEntityMatrixConstants(
@@ -2308,7 +2313,6 @@ static void RB_UpdateEntityMatrixConstants(
 	orientationr_t ori;
 	R_RotateForEntity(refEntity, &backEnd.viewParms, &ori);
 	Matrix16Copy(ori.modelMatrix, entityBlock.modelMatrix);
-	VectorCopy(ori.viewOrigin, entityBlock.localViewOrigin);
 }
 
 static void RB_UpdateEntityModelConstants(

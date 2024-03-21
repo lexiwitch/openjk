@@ -2112,7 +2112,7 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 		{
 			if (shader.isHDRLit)
 			{
-				image_t *hdrImage = R_FindImageFile(bufferBaseColorTextureName, IMGTYPE_COLORALPHA, IMGFLAG_NOLIGHTSCALE | IMGFLAG_HDR_LIGHTMAP | IMGFLAG_NO_COMPRESSION | IMGFLAG_CLAMPTOEDGE);
+				image_t *hdrImage = R_FindImageFile(bufferBaseColorTextureName, IMGTYPE_COLORALPHA, IMGFLAG_NOLIGHTSCALE | IMGFLAG_HDR | IMGFLAG_NO_COMPRESSION | IMGFLAG_CLAMPTOEDGE);
 				if (hdrImage)
 					stage->bundle[0].image[0] = hdrImage;
 			}
@@ -2679,8 +2679,6 @@ static qboolean ParseShader( const char **text )
 			token = COM_ParseExt( text, qfalse );
 			tr.autoExposureMinMax[1] = atof( token );
 
-			tr.explicitToneMap = true;
-
 			SkipRestOfLine( text );
 			continue;
 		}
@@ -2768,6 +2766,13 @@ static qboolean ParseShader( const char **text )
 		{
 			if ( !ParseVector( text, 3, shader.fogParms.color ) ) {
 				return qfalse;
+			}
+
+			if (tr.hdrLighting)
+			{
+				shader.fogParms.color[0] = sRGBtoRGB(shader.fogParms.color[0]);
+				shader.fogParms.color[1] = sRGBtoRGB(shader.fogParms.color[1]);
+				shader.fogParms.color[2] = sRGBtoRGB(shader.fogParms.color[2]);
 			}
 
 			token = COM_ParseExt( text, qfalse );
@@ -3752,6 +3757,7 @@ static shader_t *GeneratePermanentShader( void ) {
 	}
 
 	RB_AddShaderToShaderInstanceUBO(newShader);
+	newShader->spriteUbo = -1;
 
 	SortNewShader();
 
@@ -4178,6 +4184,9 @@ static shader_t *FinishShader( void ) {
 
 			if (!pStage->active)
 				continue;
+
+			if (pStage->stateBits & (GLS_DSTBLEND_BITS | GLS_SRCBLEND_BITS))
+				break;
 
 			if (pStage->alphaTestType == ALPHA_TEST_NONE)
 				shader.useSimpleDepthShader = qtrue;

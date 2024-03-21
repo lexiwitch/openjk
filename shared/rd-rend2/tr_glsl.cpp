@@ -347,6 +347,14 @@ static size_t GLSL_GetShaderHeader(
 					va("#define MAX_G2_BONES %i\n",
 						MAX_G2_BONES));
 
+	Q_strcat(dest, size,
+		va("#define MAX_GPU_FOGS %i\n",
+			MAX_GPU_FOGS));
+
+	Q_strcat(dest, size,
+		va("#define MAX_DLIGHTS %i\n",
+			MAX_DLIGHTS));
+
 	fbufWidthScale = (float)glConfig.vidWidth;
 	fbufHeightScale = (float)glConfig.vidHeight;
 	Q_strcat(dest, size,
@@ -1387,6 +1395,7 @@ void GLSL_InitSplashScreenShader()
 	size_t splashLen = strlen("splash");
 	tr.splashScreenShader.program = program;
 	tr.splashScreenShader.name = (char *)Z_Malloc(splashLen + 1, TAG_GENERAL);
+	GLSL_InitUniforms(&tr.splashScreenShader);
 	Q_strncpyz(tr.splashScreenShader.name, "splash", splashLen + 1);
 }
 

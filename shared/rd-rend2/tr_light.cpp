@@ -90,9 +90,10 @@ void R_DlightBmodel( bmodel_t *bmodel, trRefEntity_t *ent ) {
 
 	ent->needDlights = (qboolean)(mask != 0);
 
+	world_t *world = R_GetWorld(bmodel->worldIndex);
 	// set the dlight bits in all the surfaces
 	for ( i = 0 ; i < bmodel->numSurfaces ; i++ ) {
-		surf = tr.world->surfaces + bmodel->firstSurface + i;
+		surf = world->surfaces + bmodel->firstSurface + i;
 
 		switch(*surf->data)
 		{
@@ -447,7 +448,10 @@ int R_LightDirForPoint( vec3_t point, vec3_t lightDir, vec3_t normal, world_t *w
 	trRefEntity_t ent;
 	
 	if ( world->lightGridData == NULL )
-	  return qfalse;
+	{
+		VectorCopy(normal, lightDir);
+		return qfalse;
+	}
 
 	Com_Memset(&ent, 0, sizeof(ent));
 	VectorCopy( point, ent.e.origin );

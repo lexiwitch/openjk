@@ -45,13 +45,11 @@ layout(std140) uniform Entity
 	mat4 u_ModelMatrix;
 	vec4 u_LocalLightOrigin;
 	vec3 u_AmbientLight;
-	float u_LocalLightRadius;
+	float u_entityTime;
 	vec3 u_DirectedLight;
 	float u_FXVolumetricBase;
 	vec3 u_ModelLightDir;
 	float u_VertexLerp;
-	vec3 u_LocalViewOrigin;
-	float u_entityTime;
 };
 
 #if defined(USE_SKELETAL_ANIMATION)
@@ -159,7 +157,7 @@ vec2 GenTexCoords(int TCGen, vec3 position, vec3 normal, vec3 TCGenVector0, vec3
 
 		case TCGEN_ENVIRONMENT_MAPPED:
 		{
-			vec3 viewer = normalize(u_LocalViewOrigin - position);
+			vec3 viewer = normalize(u_ViewOrigin - position);
 			vec2 ref = reflect(viewer, normal).yz;
 			tex.s = ref.x * -0.5 + 0.5;
 			tex.t = ref.y *  0.5 + 0.5;
@@ -241,8 +239,10 @@ void main()
   #endif
 #endif
 
+	vec4 wsPosition = u_ModelMatrix * vec4(position, 1.0);
+
 #if defined(USE_TCGEN)
-	vec2 texCoords = GenTexCoords(u_TCGen0, position, normal, u_TCGen0Vector0, u_TCGen0Vector1);
+	vec2 texCoords = GenTexCoords(u_TCGen0, wsPosition.xyz, normal, u_TCGen0Vector0, u_TCGen0Vector1);
 #else
 	vec2 texCoords = attr_TexCoord0.st;
 #endif
@@ -255,17 +255,16 @@ void main()
 
 	vec4 disintegration = CalcColor(position);
 
-	mat4 MVP = u_viewProjectionMatrix * u_ModelMatrix;
-	gl_Position = MVP * vec4(position, 1.0);
+	gl_Position = u_viewProjectionMatrix * wsPosition;
 
-	position  = (u_ModelMatrix * vec4(position, 1.0)).xyz;
+	position  = wsPosition.xyz;
 	normal    = normalize(mat3(u_ModelMatrix) * normal);
   #if defined(PER_PIXEL_LIGHTING)
 	tangent   = normalize(mat3(u_ModelMatrix) * tangent);
   #endif
 
 #if defined(USE_LIGHT_VECTOR)
-	vec3 L = u_LocalLightOrigin.xyz - (position * u_LocalLightOrigin.w);
+	vec3 L = u_LocalLightOrigin.xyz;
 #elif defined(PER_PIXEL_LIGHTING)
 	vec3 L = attr_LightDirection * 2.0 - vec3(1.0);
 	L = (u_ModelMatrix * vec4(L, 0.0)).xyz;
@@ -293,7 +292,7 @@ void main()
 			float sqrLightDist = dot(L, L);
 			float NL = clamp(dot(normal, L) / sqrt(sqrLightDist), 0.0, 1.0);
 
-			var_Color.rgb *= u_DirectedLight * NL + u_AmbientLight;
+			var_Color.rgb *= mix(u_DirectedLight, u_AmbientLight, NL);
 		#endif
 	}
 	var_Color *= disintegration;
@@ -350,13 +349,11 @@ layout(std140) uniform Entity
 	mat4 u_ModelMatrix;
 	vec4 u_LocalLightOrigin;
 	vec3 u_AmbientLight;
-	float u_LocalLightRadius;
+	float u_entityTime;
 	vec3 u_DirectedLight;
 	float u_FXVolumetricBase;
 	vec3 u_ModelLightDir;
 	float u_VertexLerp;
-	vec3 u_LocalViewOrigin;
-	float u_entityTime;
 };
 
 struct Light
@@ -906,7 +903,7 @@ vec3 CalcDynamicLightContribution(
 	vec3 outColor = vec3(0.0);
 	vec3 position = viewOrigin - viewDir;
 
-	for ( int i = 0; i < u_NumLights; i++ )
+	for ( int i = 0; i < min(u_NumLights, MAX_DLIGHTS); i++ )
 	{
 		if ( ( u_LightMask & ( 1 << i ) ) == 0 ) {
 			continue;

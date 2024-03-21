@@ -57,6 +57,7 @@ typedef unsigned int glIndex_t;
 #define MAX_VBOS      4096
 #define MAX_IBOS      4096
 #define MAX_G2_BONES  72
+#define MAX_GPU_FOGS  24
 
 #define MAX_CALC_PSHADOWS    64
 #define MAX_DRAWN_PSHADOWS    32 // do not increase past 32, because bit flags are used on surfaces
@@ -312,10 +313,9 @@ typedef enum
 	IMGFLAG_GENNORMALMAP   = 0x0100,
 	IMGFLAG_MUTABLE        = 0x0200,
 	IMGFLAG_HDR            = 0x0400,
-	IMGFLAG_HDR_LIGHTMAP   = 0x0800,
-	IMGFLAG_2D_ARRAY       = 0x1000,
-	IMGFLAG_3D             = 0x2000,
-	IMGLFAG_SHADOWCOMP     = 0x4000,
+	IMGFLAG_2D_ARRAY       = 0x0800,
+	IMGFLAG_3D             = 0x1000,
+	IMGLFAG_SHADOWCOMP     = 0x2000,
 } imgFlags_t;
 
 typedef enum
@@ -752,7 +752,7 @@ struct FogsBlock
 
 	int numFogs;
 	float pad0[3];
-	Fog fogs[16];
+	Fog fogs[MAX_GPU_FOGS];
 };
 
 struct EntityBlock
@@ -760,13 +760,11 @@ struct EntityBlock
 	matrix_t modelMatrix;
 	vec4_t lightOrigin;
 	vec3_t ambientLight;
-	float lightRadius;
+	float entityTime;
 	vec3_t directedLight;
 	float fxVolumetricBase;
 	vec3_t modelLightDir;
 	float vertexLerp;
-	vec3_t localViewOrigin;
-	float entityTime;
 };
 
 struct ShaderInstanceBlock
@@ -2624,8 +2622,6 @@ typedef struct trGlobals_s {
 	// Specific to Jedi Academy
 	int						numBSPModels;
 	int						currentLevel;
-
-	bool					explicitToneMap;
 } trGlobals_t;
 
 struct glconfigExt_t
