@@ -2517,7 +2517,7 @@ void R_SetupViewParms(const trRefdef_t *refdef)
 	R_RotateForViewer(&tr.viewParms.world, &tr.viewParms);
 	R_SetupProjection(&tr.viewParms, tr.viewParms.zNear, tr.viewParms.zFar, qtrue);
 
-	if (tr.world)
+	if (tr.world && !(refdef->rdflags & RDF_NOWORLDMODEL))
 	{
 		R_MarkLeaves();
 
@@ -2534,7 +2534,7 @@ void R_SetupViewParms(const trRefdef_t *refdef)
 
 qboolean R_AddPortalView(const trRefdef_t *refdef)
 {
-	if (!tr.world)
+	if (!tr.world || refdef->rdflags & RDF_NOWORLDMODEL)
 		return qfalse;
 
 	for (int i = 0; i < tr.world->numWorldSurfaces; i++)
@@ -2646,7 +2646,9 @@ void R_GatherFrameViews(trRefdef_t *refdef)
 {
 	int mainFlags = 0;
 	// skyportal view
-	if (tr.world && tr.world->skyboxportal)
+	if (tr.world &&
+		tr.world->skyboxportal &&
+		!(refdef->rdflags & RDF_NOWORLDMODEL))
 	{
 		tr.viewCount++;
 		tr.viewParms = tr.skyPortalParms;
@@ -2671,7 +2673,7 @@ void R_GatherFrameViews(trRefdef_t *refdef)
 	}
 
 	VectorCopy(refdef->vieworg, tr.viewParms.pvsOrigin);
-	if (tr.world)
+	if (tr.world && !(refdef->rdflags & RDF_NOWORLDMODEL))
 		R_MarkLeaves();
 
 	if (!(refdef->rdflags & RDF_NOWORLDMODEL))
