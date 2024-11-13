@@ -36,7 +36,7 @@ jobs:
       run: ./editbin.exe /largeaddressaware ${{runner.workspace}}/build/${{ matrix.build_type }}/mbii.x86.exe
 
     - name: Upload Build
-      uses: actions/upload-artifact@v2.2.4
+      uses: actions/upload-artifact@v4
       with:
         name: Windows Build ${{ matrix.build_type }}
         path: |
@@ -55,7 +55,14 @@ jobs:
 
   linux:
     name: Build Linux Client, ${{ matrix.build_type }}
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:20.04
+      env:
+        DEBIAN_FRONTEND: noninteractive
+        TZ: Etc/Utc
+      volumes:
+        - ${{ github.workspace }}:/data
     strategy:
       matrix:
         build_type: [Release]
@@ -65,23 +72,23 @@ jobs:
 
     - name: Create Build Environment
       run: |
-        sudo dpkg --add-architecture i386
-        sudo apt-get update
-        sudo apt-get install build-essential cmake gcc-multilib g++-multilib libjpeg-dev:i386 libpng-dev:i386 zlib1g-dev:i386 libsdl2-dev:i386
-        cmake -E make_directory ${{runner.workspace}}/build
+        dpkg --add-architecture i386
+        apt-get update
+        apt-get install -y build-essential cmake gcc-multilib g++-multilib libjpeg-dev:i386 libpng-dev:i386 zlib1g-dev:i386 libsdl2-dev:i386
+        cmake -E make_directory /data/build
         
     - name: Configure CMake
       shell: bash
-      working-directory: ${{runner.workspace}}/build
+      working-directory: /data/build
       run: >
-        cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
         -DCMAKE_TOOLCHAIN_FILE=cmake/Toolchains/linux-i686.cmake
         -DBuildMPDed=OFF -DBuildMPEngine=ON -DBuildMPRdVanilla=ON -DBuildMPCGame=OFF
         -DBuildMPUI=OFF -DBuildSPEngine=OFF -DBuildSPGame=OFF -DBuildSPRdVanilla=OFF
         -DUseInternalPNG=ON -DUseInternalJPEG=ON -DBuildMPRdVulkan=ON -DBuildMPRend2=ON
 
     - name: Build
-      working-directory: ${{runner.workspace}}/build
+      working-directory: /data/build
       shell: bash
       run: |
         cmake --build .
@@ -90,12 +97,12 @@ jobs:
         mv codemp/rd-rend2/rd-rend2-mbii_i386.so .
       
     - name: Upload Build
-      uses: actions/upload-artifact@v2.2.4
+      uses: actions/upload-artifact@v4
       with:
         name: Linux Client Build ${{ matrix.build_type }}
         path: |
-          ${{runner.workspace}}/build/*.i386
-          ${{runner.workspace}}/build/*.so
+          /data/build/*.i386
+          /data/build/*.so
 
   linux-old:
     name: Build Linux Server, ${{ matrix.build_type }}
@@ -126,7 +133,7 @@ jobs:
       run: cmake --build .
       
     - name: Upload Build
-      uses: actions/upload-artifact@v2.2.4
+      uses: actions/upload-artifact@v4
       with:
         name: Linux Server Build ${{ matrix.build_type }}
         path: ${{runner.workspace}}/build/*.i386
